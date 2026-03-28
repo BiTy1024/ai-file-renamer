@@ -1,0 +1,18 @@
+# Claude Code (local only)
+CLAUDE.md
+.claude/
+
+# Project plans (local only)
+Plan/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+dist/
+build/
+*.egg-info/
+.env
+.mypy_cache/
+.pytest_cache/
