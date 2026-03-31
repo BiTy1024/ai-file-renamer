@@ -7,19 +7,19 @@ from sqlmodel import Session, select
 from app import crud
 from app.core.config import settings
 from app.core.security import verify_password
-from app.models import User, UserCreate
+from app.models import User, UserCreate, UserRole
 from tests.utils.user import create_random_user
 from tests.utils.utils import random_email, random_lower_string
 
 
-def test_get_users_superuser_me(
+def test_get_users_admin_me(
     client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     r = client.get(f"{settings.API_V1_STR}/users/me", headers=superuser_token_headers)
     current_user = r.json()
     assert current_user
     assert current_user["is_active"] is True
-    assert current_user["is_superuser"]
+    assert current_user["role"] == "admin"
     assert current_user["email"] == settings.FIRST_SUPERUSER
 
 
@@ -30,7 +30,7 @@ def test_get_users_normal_user_me(
     current_user = r.json()
     assert current_user
     assert current_user["is_active"] is True
-    assert current_user["is_superuser"] is False
+    assert current_user["role"] == "viewer"
     assert current_user["email"] == settings.EMAIL_TEST_USER
 
 
@@ -44,7 +44,7 @@ def test_create_user_new_email(
     ):
         username = random_email()
         password = random_lower_string()
-        data = {"email": username, "password": password}
+        data = {"email": username, "password": password, "role": "user"}
         r = client.post(
             f"{settings.API_V1_STR}/users/",
             headers=superuser_token_headers,
@@ -55,9 +55,10 @@ def test_create_user_new_email(
         user = crud.get_user_by_email(session=db, email=username)
         assert user
         assert user.email == created_user["email"]
+        assert created_user["role"] == "user"
 
 
-def test_get_existing_user_as_superuser(
+def test_get_existing_user_as_admin(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     username = random_email()
@@ -76,7 +77,7 @@ def test_get_existing_user_as_superuser(
     assert existing_user.email == api_user["email"]
 
 
-def test_get_non_existing_user_as_superuser(
+def test_get_non_existing_user_as_admin(
     client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     r = client.get(
@@ -147,7 +148,6 @@ def test_create_user_existing_username(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     username = random_email()
-    # username = email
     password = random_lower_string()
     user_in = UserCreate(email=username, password=password)
     crud.create_user(session=db, user_create=user_in)
@@ -316,43 +316,15 @@ def test_update_password_me_same_password_error(
     )
 
 
-def test_register_user(client: TestClient, db: Session) -> None:
+def test_signup_disabled(client: TestClient) -> None:
     username = random_email()
     password = random_lower_string()
-    full_name = random_lower_string()
-    data = {"email": username, "password": password, "full_name": full_name}
+    data = {"email": username, "password": password, "full_name": "Test"}
     r = client.post(
         f"{settings.API_V1_STR}/users/signup",
         json=data,
     )
-    assert r.status_code == 200
-    created_user = r.json()
-    assert created_user["email"] == username
-    assert created_user["full_name"] == full_name
-
-    user_query = select(User).where(User.email == username)
-    user_db = db.exec(user_query).first()
-    assert user_db
-    assert user_db.email == username
-    assert user_db.full_name == full_name
-    verified, _ = verify_password(password, user_db.hashed_password)
-    assert verified
-
-
-def test_register_user_already_exists_error(client: TestClient) -> None:
-    password = random_lower_string()
-    full_name = random_lower_string()
-    data = {
-        "email": settings.FIRST_SUPERUSER,
-        "password": password,
-        "full_name": full_name,
-    }
-    r = client.post(
-        f"{settings.API_V1_STR}/users/signup",
-        json=data,
-    )
-    assert r.status_code == 400
-    assert r.json()["detail"] == "The user with this email already exists in the system"
+    assert r.status_code in (404, 405)
 
 
 def test_update_user(
@@ -443,12 +415,8 @@ def test_delete_user_me(client: TestClient, db: Session) -> None:
     result = db.exec(select(User).where(User.id == user_id)).first()
     assert result is None
 
-    user_query = select(User).where(User.id == user_id)
-    user_db = db.execute(user_query).first()
-    assert user_db is None
 
-
-def test_delete_user_me_as_superuser(
+def test_delete_user_me_as_admin(
     client: TestClient, superuser_token_headers: dict[str, str]
 ) -> None:
     r = client.delete(
@@ -457,10 +425,10 @@ def test_delete_user_me_as_superuser(
     )
     assert r.status_code == 403
     response = r.json()
-    assert response["detail"] == "Super users are not allowed to delete themselves"
+    assert response["detail"] == "Admins are not allowed to delete themselves"
 
 
-def test_delete_user_super_user(
+def test_delete_user_by_admin(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
     username = random_email()
@@ -490,19 +458,19 @@ def test_delete_user_not_found(
     assert r.json()["detail"] == "User not found"
 
 
-def test_delete_user_current_super_user_error(
+def test_delete_user_current_admin_error(
     client: TestClient, superuser_token_headers: dict[str, str], db: Session
 ) -> None:
-    super_user = crud.get_user_by_email(session=db, email=settings.FIRST_SUPERUSER)
-    assert super_user
-    user_id = super_user.id
+    admin_user = crud.get_user_by_email(session=db, email=settings.FIRST_SUPERUSER)
+    assert admin_user
+    user_id = admin_user.id
 
     r = client.delete(
         f"{settings.API_V1_STR}/users/{user_id}",
         headers=superuser_token_headers,
     )
     assert r.status_code == 403
-    assert r.json()["detail"] == "Super users are not allowed to delete themselves"
+    assert r.json()["detail"] == "Admins are not allowed to delete themselves"
 
 
 def test_delete_user_without_privileges(

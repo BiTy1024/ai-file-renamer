@@ -1,32 +1,34 @@
 import uuid
 from datetime import datetime, timezone
+from enum import Enum
 
 from pydantic import EmailStr
 from sqlalchemy import DateTime
-from sqlmodel import Field, SQLModel
+from sqlmodel import Column, Field, SQLModel
+from sqlalchemy import Enum as SAEnum
 
 
 def get_datetime_utc() -> datetime:
     return datetime.now(timezone.utc)
 
 
+class UserRole(str, Enum):  # noqa: SLOT000
+    ADMIN = "admin"
+    USER = "user"
+    VIEWER = "viewer"
+
+
 # Shared properties
 class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, max_length=255)
     is_active: bool = True
-    is_superuser: bool = False
+    role: UserRole = Field(default=UserRole.VIEWER)
     full_name: str | None = Field(default=None, max_length=255)
 
 
 # Properties to receive via API on creation
 class UserCreate(UserBase):
     password: str = Field(min_length=8, max_length=128)
-
-
-class UserRegister(SQLModel):
-    email: EmailStr = Field(max_length=255)
-    password: str = Field(min_length=8, max_length=128)
-    full_name: str | None = Field(default=None, max_length=255)
 
 
 # Properties to receive via API on update, all are optional
@@ -49,6 +51,10 @@ class UpdatePassword(SQLModel):
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
+    role: UserRole = Field(  # type: ignore
+        default=UserRole.VIEWER,
+        sa_column=Column(SAEnum(UserRole), nullable=False, default=UserRole.VIEWER),
+    )
     created_at: datetime | None = Field(
         default_factory=get_datetime_utc,
         sa_type=DateTime(timezone=True),  # type: ignore
