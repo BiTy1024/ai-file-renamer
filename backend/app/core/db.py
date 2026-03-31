@@ -27,6 +27,7 @@ def reset_admin(session: Session) -> User:
     ).first()
     if user:
         from app.core.security import get_password_hash
+
         user.hashed_password = get_password_hash(settings.FIRST_SUPERUSER_PASSWORD)
         user.role = UserRole.ADMIN
         user.is_active = True
