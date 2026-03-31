@@ -47,7 +47,7 @@ jobs:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: testpass
       POSTGRES_DB: app
-      SECRET_KEY: test-secret-key-for-ci
+      SECRET_KEY: test-secret-key-for-ci-that-is-long-enough-for-hmac-sha256
       FIRST_SUPERUSER: admin@example.com
       FIRST_SUPERUSER_PASSWORD: testpass123
       PROJECT_NAME: AI-Namer
