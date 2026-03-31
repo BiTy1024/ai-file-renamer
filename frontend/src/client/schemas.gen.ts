@@ -176,10 +176,9 @@ export const UserCreateSchema = {
             title: 'Is Active',
             default: true
         },
-        is_superuser: {
-            type: 'boolean',
-            title: 'Is Superuser',
-            default: false
+        role: {
+            '$ref': '#/components/schemas/UserRole',
+            default: 'viewer'
         },
         full_name: {
             anyOf: [
@@ -218,10 +217,9 @@ export const UserPublicSchema = {
             title: 'Is Active',
             default: true
         },
-        is_superuser: {
-            type: 'boolean',
-            title: 'Is Superuser',
-            default: false
+        role: {
+            '$ref': '#/components/schemas/UserRole',
+            default: 'viewer'
         },
         full_name: {
             anyOf: [
@@ -258,36 +256,10 @@ export const UserPublicSchema = {
     title: 'UserPublic'
 } as const;
 
-export const UserRegisterSchema = {
-    properties: {
-        email: {
-            type: 'string',
-            maxLength: 255,
-            format: 'email',
-            title: 'Email'
-        },
-        password: {
-            type: 'string',
-            maxLength: 128,
-            minLength: 8,
-            title: 'Password'
-        },
-        full_name: {
-            anyOf: [
-                {
-                    type: 'string',
-                    maxLength: 255
-                },
-                {
-                    type: 'null'
-                }
-            ],
-            title: 'Full Name'
-        }
-    },
-    type: 'object',
-    required: ['email', 'password'],
-    title: 'UserRegister'
+export const UserRoleSchema = {
+    type: 'string',
+    enum: ['admin', 'user', 'viewer'],
+    title: 'UserRole'
 } as const;
 
 export const UserUpdateSchema = {
@@ -310,10 +282,9 @@ export const UserUpdateSchema = {
             title: 'Is Active',
             default: true
         },
-        is_superuser: {
-            type: 'boolean',
-            title: 'Is Superuser',
-            default: false
+        role: {
+            '$ref': '#/components/schemas/UserRole',
+            default: 'viewer'
         },
         full_name: {
             anyOf: [
