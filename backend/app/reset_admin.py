@@ -3,6 +3,7 @@
 Usage:
     python -m app.reset_admin
 """
+
 import logging
 
 from sqlmodel import Session

@@ -56,4 +56,5 @@ def require_role(*roles: UserRole) -> Callable[[User], User]:
                 status_code=403, detail="The user doesn't have enough privileges"
             )
         return current_user
+
     return check_role

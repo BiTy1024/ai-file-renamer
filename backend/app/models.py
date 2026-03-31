@@ -4,8 +4,8 @@ from enum import Enum
 
 from pydantic import EmailStr
 from sqlalchemy import DateTime
-from sqlmodel import Column, Field, SQLModel
 from sqlalchemy import Enum as SAEnum
+from sqlmodel import Column, Field, SQLModel
 
 
 def get_datetime_utc() -> datetime:
@@ -51,7 +51,7 @@ class UpdatePassword(SQLModel):
 class User(UserBase, table=True):
     id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
     hashed_password: str
-    role: UserRole = Field(  # type: ignore
+    role: UserRole = Field(
         default=UserRole.VIEWER,
         sa_column=Column(SAEnum(UserRole), nullable=False, default=UserRole.VIEWER),
     )
