@@ -1,4 +1,4 @@
-# FastAPI Project - Backend
+# AI-Namer - Backend
 
 ## Requirements
 

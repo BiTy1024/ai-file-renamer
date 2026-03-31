@@ -5,10 +5,10 @@ export function Footer() {
     <footer className="border-t py-4 px-6">
       <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
         <p className="text-muted-foreground text-sm">
-          AI File Renamer - {currentYear}
+          AI-Namer - {currentYear}
         </p>
         <p className="text-muted-foreground text-xs">
-          Built on Full Stack FastAPI Template by Sebastian Ramirez
+          Thanks to Sebastian Ramirez for full-stack-fastapi-template
         </p>
       </div>
     </footer>
