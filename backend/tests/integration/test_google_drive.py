@@ -12,8 +12,10 @@ Run in CI: provided via GitHub Secrets.
 
 import json
 import os
+from pathlib import Path
 
 import pytest
+from dotenv import dotenv_values
 
 from app.core.security import encrypt_text
 from app.models import ServiceAccount
@@ -24,8 +26,16 @@ from app.services.google_drive import (
     list_folders,
 )
 
-SA_JSON = os.environ.get("GOOGLE_SA_CREDENTIALS_JSON")
-TEST_FOLDER_ID = os.environ.get("GOOGLE_TEST_FOLDER_ID")
+# Load from .env file directly (preserves JSON quotes that shell sourcing breaks)
+_env_file = Path(__file__).resolve().parents[3] / ".env"
+_env_values = dotenv_values(_env_file) if _env_file.exists() else {}
+
+SA_JSON = os.environ.get("GOOGLE_SA_CREDENTIALS_JSON") or _env_values.get(
+    "GOOGLE_SA_CREDENTIALS_JSON"
+)
+TEST_FOLDER_ID = os.environ.get("GOOGLE_TEST_FOLDER_ID") or _env_values.get(
+    "GOOGLE_TEST_FOLDER_ID"
+)
 
 skip_no_credentials = pytest.mark.skipif(
     not SA_JSON, reason="GOOGLE_SA_CREDENTIALS_JSON not set"
