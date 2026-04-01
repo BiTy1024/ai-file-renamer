@@ -11,6 +11,9 @@ from app.core.security import (
     verify_password,
 )
 from app.models import (
+    ConventionPreset,
+    ConventionPresetCreate,
+    ConventionPresetUpdate,
     ServiceAccount,
     ServiceAccountCreate,
     ServiceAccountUpdate,
@@ -126,6 +129,35 @@ def update_service_account(
 
 def delete_service_account(*, session: Session, db_sa: ServiceAccount) -> None:
     session.delete(db_sa)
+    session.commit()
+
+
+# --- Convention Preset CRUD ---
+
+
+def create_preset(
+    *, session: Session, preset_in: ConventionPresetCreate
+) -> ConventionPreset:
+    db_obj = ConventionPreset.model_validate(preset_in)
+    session.add(db_obj)
+    session.commit()
+    session.refresh(db_obj)
+    return db_obj
+
+
+def update_preset(
+    *, session: Session, db_preset: ConventionPreset, preset_in: ConventionPresetUpdate
+) -> ConventionPreset:
+    update_data = preset_in.model_dump(exclude_unset=True)
+    db_preset.sqlmodel_update(update_data)
+    session.add(db_preset)
+    session.commit()
+    session.refresh(db_preset)
+    return db_preset
+
+
+def delete_preset(*, session: Session, db_preset: ConventionPreset) -> None:
+    session.delete(db_preset)
     session.commit()
 
 

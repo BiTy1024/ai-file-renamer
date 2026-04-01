@@ -7,7 +7,7 @@ from sqlmodel import Session, delete
 from app.core.config import settings
 from app.core.db import engine, init_db
 from app.main import app
-from app.models import ServiceAccount, UsageRecord, User, UserLimit
+from app.models import ConventionPreset, ServiceAccount, UsageRecord, User, UserLimit
 from tests.utils.user import authentication_token_from_email
 from tests.utils.utils import get_superuser_token_headers
 
@@ -17,7 +17,7 @@ def db() -> Generator[Session, None, None]:
     with Session(engine) as session:
         init_db(session)
         yield session
-        for model in (UsageRecord, UserLimit, ServiceAccount, User):
+        for model in (UsageRecord, UserLimit, ConventionPreset, ServiceAccount, User):
             session.execute(delete(model))
         session.commit()
 

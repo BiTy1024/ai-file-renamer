@@ -1,4 +1,4 @@
-import { FolderOpen, Home, KeyRound, Users } from "lucide-react"
+import { FolderOpen, Home, KeyRound, ListChecks, Users } from "lucide-react"
 
 import { SidebarAppearance } from "@/components/Common/Appearance"
 import { Logo } from "@/components/Common/Logo"
@@ -30,6 +30,7 @@ export function AppSidebar() {
             title: "Service Accounts",
             path: "/service-accounts",
           },
+          { icon: ListChecks, title: "Presets", path: "/presets" },
         ]
       : baseItems
 
