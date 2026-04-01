@@ -5,7 +5,7 @@ from enum import Enum
 from pydantic import EmailStr
 from sqlalchemy import DateTime
 from sqlalchemy import Enum as SAEnum
-from sqlmodel import Column, Field, SQLModel
+from sqlmodel import Column, Field, Relationship, SQLModel
 
 
 def get_datetime_utc() -> datetime:
@@ -91,3 +91,51 @@ class TokenPayload(SQLModel):
 class NewPassword(SQLModel):
     token: str
     new_password: str = Field(min_length=8, max_length=128)
+
+
+# --- Service Account models ---
+
+
+class ServiceAccountBase(SQLModel):
+    display_name: str = Field(max_length=255)
+    description: str | None = Field(default=None, max_length=500)
+
+
+class ServiceAccountCreate(ServiceAccountBase):
+    credentials_json: str
+    user_id: uuid.UUID
+
+
+class ServiceAccountUpdate(SQLModel):
+    display_name: str | None = Field(default=None, max_length=255)
+    description: str | None = Field(default=None, max_length=500)
+    credentials_json: str | None = None
+    user_id: uuid.UUID | None = None
+
+
+class ServiceAccount(ServiceAccountBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    encrypted_credentials: str
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, unique=True, ondelete="CASCADE"
+    )
+    user: User | None = Relationship()
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class ServiceAccountPublic(ServiceAccountBase):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    created_at: datetime | None = None
+
+
+class ServiceAccountPublicWithEmail(ServiceAccountPublic):
+    client_email: str | None = None
+
+
+class ServiceAccountsPublic(SQLModel):
+    data: list[ServiceAccountPublic]
+    count: int

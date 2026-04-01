@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, ServiceAccountsReadServiceAccountsData, ServiceAccountsReadServiceAccountsResponse, ServiceAccountsCreateServiceAccountData, ServiceAccountsCreateServiceAccountResponse, ServiceAccountsReadOwnServiceAccountResponse, ServiceAccountsReadServiceAccountData, ServiceAccountsReadServiceAccountResponse, ServiceAccountsUpdateServiceAccountData, ServiceAccountsUpdateServiceAccountResponse, ServiceAccountsDeleteServiceAccountData, ServiceAccountsDeleteServiceAccountResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class LoginService {
     /**
@@ -117,6 +117,130 @@ export class PrivateService {
             url: '/api/v1/private/users/',
             body: data.requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class ServiceAccountsService {
+    /**
+     * Read Service Accounts
+     * List all service accounts (admin only).
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @returns ServiceAccountsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readServiceAccounts(data: ServiceAccountsReadServiceAccountsData = {}): CancelablePromise<ServiceAccountsReadServiceAccountsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/service-accounts/',
+            query: {
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Create Service Account
+     * Create a service account and assign to a user (admin only).
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ServiceAccountPublic Successful Response
+     * @throws ApiError
+     */
+    public static createServiceAccount(data: ServiceAccountsCreateServiceAccountData): CancelablePromise<ServiceAccountsCreateServiceAccountResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/service-accounts/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Own Service Account
+     * Get the service account assigned to the current user.
+     * @returns ServiceAccountPublicWithEmail Successful Response
+     * @throws ApiError
+     */
+    public static readOwnServiceAccount(): CancelablePromise<ServiceAccountsReadOwnServiceAccountResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/service-accounts/me'
+        });
+    }
+    
+    /**
+     * Read Service Account
+     * Get a specific service account by ID (admin only).
+     * @param data The data for the request.
+     * @param data.saId
+     * @returns ServiceAccountPublic Successful Response
+     * @throws ApiError
+     */
+    public static readServiceAccount(data: ServiceAccountsReadServiceAccountData): CancelablePromise<ServiceAccountsReadServiceAccountResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/service-accounts/{sa_id}',
+            path: {
+                sa_id: data.saId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update Service Account
+     * Update a service account (admin only).
+     * @param data The data for the request.
+     * @param data.saId
+     * @param data.requestBody
+     * @returns ServiceAccountPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateServiceAccount(data: ServiceAccountsUpdateServiceAccountData): CancelablePromise<ServiceAccountsUpdateServiceAccountResponse> {
+        return __request(OpenAPI, {
+            method: 'PATCH',
+            url: '/api/v1/service-accounts/{sa_id}',
+            path: {
+                sa_id: data.saId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Delete Service Account
+     * Delete a service account (admin only).
+     * @param data The data for the request.
+     * @param data.saId
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static deleteServiceAccount(data: ServiceAccountsDeleteServiceAccountData): CancelablePromise<ServiceAccountsDeleteServiceAccountResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/service-accounts/{sa_id}',
+            path: {
+                sa_id: data.saId
+            },
             errors: {
                 422: 'Validation Error'
             }
