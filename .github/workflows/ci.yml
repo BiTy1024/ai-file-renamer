@@ -57,7 +57,48 @@ jobs:
       - uses: astral-sh/setup-uv@v4
       - run: uv sync --frozen
       - run: uv run alembic upgrade head
-      - run: uv run pytest tests/ -v
+      - run: uv run pytest tests/ -v --ignore=tests/integration
+
+  backend-integration:
+    name: Backend Integration Tests (Google Drive)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' || github.event.pull_request.head.repo.full_name == github.repository
+    defaults:
+      run:
+        working-directory: backend
+    services:
+      postgres:
+        image: postgres:18
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: testpass
+          POSTGRES_DB: app
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      POSTGRES_SERVER: localhost
+      POSTGRES_PORT: 5432
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_DB: app
+      SECRET_KEY: test-secret-key-for-ci-that-is-long-enough-for-hmac-sha256
+      FIRST_SUPERUSER: admin@example.com
+      FIRST_SUPERUSER_PASSWORD: testpass123
+      PROJECT_NAME: AI-Namer
+      ENVIRONMENT: local
+      GOOGLE_SA_CREDENTIALS_JSON: ${{ secrets.GOOGLE_SA_CREDENTIALS_JSON }}
+      GOOGLE_TEST_FOLDER_ID: ${{ secrets.GOOGLE_TEST_FOLDER_ID }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v4
+      - run: uv sync --frozen
+      - run: uv run alembic upgrade head
+      - run: uv run pytest tests/integration/ -v
 
   frontend-lint:
     name: Frontend Lint & Type Check
