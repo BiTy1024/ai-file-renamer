@@ -27,18 +27,30 @@ def encode_image_base64(file_bytes: bytes) -> str:
     return base64.standard_b64encode(file_bytes).decode("utf-8")
 
 
-def download_drive_file(service: Any, file_id: str) -> tuple[bytes, str]:
-    """Download a file from Google Drive. Returns (bytes, mime_type)."""
-    metadata = (
+def get_file_metadata_rich(service: Any, file_id: str) -> dict[str, Any]:
+    """Get rich metadata from Drive including image EXIF data."""
+    result: dict[str, Any] = (
         service.files()
-        .get(fileId=file_id, fields="mimeType", supportsAllDrives=True)
+        .get(
+            fileId=file_id,
+            fields="mimeType,name,createdTime,modifiedTime,imageMediaMetadata,size",
+            supportsAllDrives=True,
+        )
         .execute()
     )
+    return result
+
+
+def download_drive_file(
+    service: Any, file_id: str
+) -> tuple[bytes, str, dict[str, Any]]:
+    """Download a file from Google Drive. Returns (bytes, mime_type, metadata)."""
+    metadata = get_file_metadata_rich(service, file_id)
     mime_type: str = metadata["mimeType"]
 
     if mime_type in GOOGLE_NATIVE_TYPES:
         content = export_google_doc_as_pdf(service, file_id)
-        return content, GOOGLE_EXPORT_MIME
+        return content, GOOGLE_EXPORT_MIME, metadata
 
     request = service.files().get_media(fileId=file_id)
     buf = io.BytesIO()
@@ -48,7 +60,31 @@ def download_drive_file(service: Any, file_id: str) -> tuple[bytes, str]:
     done = False
     while not done:
         _, done = downloader.next_chunk()
-    return buf.getvalue(), mime_type
+    return buf.getvalue(), mime_type, metadata
+
+
+def format_metadata_context(metadata: dict[str, Any]) -> str:
+    """Format Drive metadata as context string for Claude."""
+    parts: list[str] = []
+    if metadata.get("name"):
+        parts.append(f"Original filename: {metadata['name']}")
+    if metadata.get("createdTime"):
+        parts.append(f"File created: {metadata['createdTime']}")
+    if metadata.get("modifiedTime"):
+        parts.append(f"File modified: {metadata['modifiedTime']}")
+
+    img_meta = metadata.get("imageMediaMetadata", {})
+    if img_meta:
+        if img_meta.get("time"):
+            parts.append(f"Photo taken: {img_meta['time']}")
+        if img_meta.get("cameraMake") or img_meta.get("cameraModel"):
+            camera = f"{img_meta.get('cameraMake', '')} {img_meta.get('cameraModel', '')}".strip()
+            parts.append(f"Camera: {camera}")
+        if img_meta.get("location"):
+            loc = img_meta["location"]
+            parts.append(f"GPS: {loc.get('latitude')}, {loc.get('longitude')}")
+
+    return "\n".join(parts) if parts else ""
 
 
 def export_google_doc_as_pdf(service: Any, file_id: str) -> bytes:

@@ -1,6 +1,6 @@
 import re
 
-PLACEHOLDER_PATTERN = re.compile(r"\[([A-Z][A-Z0-9_]*)\]")
+PLACEHOLDER_PATTERN = re.compile(r"\[([A-Za-z][A-Za-z0-9_]*)\]")
 INVALID_FILENAME_CHARS = re.compile(r'[/\\:*?"<>|]')
 MULTI_UNDERSCORE = re.compile(r"_+")
 
@@ -40,8 +40,11 @@ def build_claude_instruction(
 
     Tells Claude which fields to extract and return as JSON.
     """
+    from app.core.config import settings
+
     fields = parse_convention(convention)
     fields_list = ", ".join(fields)
+    language = settings.AI_LANGUAGE
 
     type_hint = ""
     if content_type:
@@ -50,8 +53,17 @@ def build_claude_instruction(
     return (
         f"Analyze the provided file content and extract the following fields: {fields_list}.{type_hint}\n"
         f"Return ONLY a JSON object with these exact keys: {fields_list}.\n"
-        f"Use simple values suitable for filenames (no special characters, keep it concise).\n"
-        f"If a field cannot be determined, use 'unknown' as the value.\n"
+        f"IMPORTANT: All text values MUST be in {language}.\n"
+        "Rules:\n"
+        '- Use simple values suitable for filenames (no special characters like /\\:*?"<>|)\n'
+        "- Replace spaces with underscores\n"
+        "- Keep values concise (max 50 chars each)\n"
+        "- For DATE fields: use YYYY-MM-DD format. Check file metadata, EXIF data, or content for dates.\n"
+        "- For DESCRIPTION fields on images: describe what is visible in the image in detail "
+        f"(objects, people, activities, location) — in {language}\n"
+        "- If metadata provides a date (e.g. 'Photo taken' or 'File created'), prefer that over 'unknown'\n"
+        "- Only use 'unknown' as absolute last resort when no information is available at all.\n"
+        "- Always incorporate the user's additional instructions if provided.\n"
         "Example response: {" + ", ".join('"' + f + '": "value"' for f in fields) + "}"
     )
 
@@ -78,10 +90,12 @@ def apply_convention(
         → "2026-01_Acme.pdf"
     """
     result = convention
-    for field_name, value in fields.items():
-        result = result.replace(f"[{field_name}]", str(value))
+    fields_lower = {k.lower(): v for k, v in fields.items()}
+    for match in PLACEHOLDER_PATTERN.finditer(convention):
+        placeholder = match.group(1)
+        value = fields_lower.get(placeholder.lower(), "unknown")
+        result = result.replace(f"[{placeholder}]", str(value))
 
-    # Remove any remaining unresolved placeholders
     result = PLACEHOLDER_PATTERN.sub("unknown", result)
 
     result = sanitize_filename(result)
