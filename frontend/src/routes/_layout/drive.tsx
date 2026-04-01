@@ -92,7 +92,7 @@ function FolderGrid() {
       {folderData.folders.map((folder) => (
         <Link
           key={folder.id}
-          to="/drive/$folderId"
+          to="/drive-folder/$folderId"
           params={{ folderId: folder.id }}
         >
           <Card className="hover:border-primary/50 cursor-pointer transition-colors">

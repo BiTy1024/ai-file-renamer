@@ -22,7 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 
-export const Route = createFileRoute("/_layout/drive/$folderId")({
+export const Route = createFileRoute("/_layout/drive-folder/$folderId")({
   component: FolderFilesPage,
   head: () => ({
     meta: [{ title: "Files - AI-Namer" }],

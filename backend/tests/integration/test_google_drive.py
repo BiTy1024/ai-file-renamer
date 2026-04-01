@@ -10,7 +10,6 @@ Run locally: set env vars and run `pytest tests/integration/ -v`
 Run in CI: provided via GitHub Secrets.
 """
 
-import json
 import os
 from pathlib import Path
 
