@@ -214,3 +214,43 @@ class UsageSummary(SQLModel):
     requests_today: int
     tokens_this_month: int
     limit: UserLimitPublic | None = None
+
+
+# --- Rename models ---
+
+
+class RenamePreview(SQLModel):
+    file_id: str
+    original_name: str
+    proposed_name: str
+    error: str | None = None
+
+
+class RenamePreviewRequest(SQLModel):
+    folder_id: str
+    convention: str
+    instruction: str | None = None
+    content_type: str | None = None
+
+
+class RenamePreviewResponse(SQLModel):
+    previews: list[RenamePreview]
+
+
+class RenameConfirmItem(SQLModel):
+    file_id: str
+    new_name: str
+
+
+class RenameConfirmRequest(SQLModel):
+    renames: list[RenameConfirmItem]
+
+
+class RenameResult(SQLModel):
+    file_id: str
+    success: bool
+    error: str | None = None
+
+
+class RenameConfirmResponse(SQLModel):
+    results: list[RenameResult]

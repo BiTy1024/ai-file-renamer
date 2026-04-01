@@ -99,3 +99,25 @@ def get_file_metadata(service: Any, file_id: str) -> dict[str, Any]:
         if e.resp.status == 403:
             raise DriveError("Missing permissions to access this file", status_code=403)
         raise DriveError(f"Google Drive API error: {e}", status_code=e.resp.status)
+
+
+def rename_file(service: Any, file_id: str, new_name: str) -> dict[str, Any]:
+    """Rename a file on Google Drive."""
+    try:
+        result: dict[str, Any] = (
+            service.files()
+            .update(
+                fileId=file_id,
+                body={"name": new_name},
+                fields="id,name",
+                supportsAllDrives=True,
+            )
+            .execute()
+        )
+        return result
+    except HttpError as e:
+        if e.resp.status == 404:
+            raise DriveError("File not found", status_code=404)
+        if e.resp.status == 403:
+            raise DriveError("Missing permissions to rename this file", status_code=403)
+        raise DriveError(f"Google Drive API error: {e}", status_code=e.resp.status)
