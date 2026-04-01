@@ -236,6 +236,163 @@ export const PrivateUserCreateSchema = {
     title: 'PrivateUserCreate'
 } as const;
 
+export const RenameConfirmItemSchema = {
+    properties: {
+        file_id: {
+            type: 'string',
+            title: 'File Id'
+        },
+        new_name: {
+            type: 'string',
+            title: 'New Name'
+        }
+    },
+    type: 'object',
+    required: ['file_id', 'new_name'],
+    title: 'RenameConfirmItem'
+} as const;
+
+export const RenameConfirmRequestSchema = {
+    properties: {
+        renames: {
+            items: {
+                '$ref': '#/components/schemas/RenameConfirmItem'
+            },
+            type: 'array',
+            title: 'Renames'
+        }
+    },
+    type: 'object',
+    required: ['renames'],
+    title: 'RenameConfirmRequest'
+} as const;
+
+export const RenameConfirmResponseSchema = {
+    properties: {
+        results: {
+            items: {
+                '$ref': '#/components/schemas/RenameResult'
+            },
+            type: 'array',
+            title: 'Results'
+        }
+    },
+    type: 'object',
+    required: ['results'],
+    title: 'RenameConfirmResponse'
+} as const;
+
+export const RenamePreviewSchema = {
+    properties: {
+        file_id: {
+            type: 'string',
+            title: 'File Id'
+        },
+        original_name: {
+            type: 'string',
+            title: 'Original Name'
+        },
+        proposed_name: {
+            type: 'string',
+            title: 'Proposed Name'
+        },
+        error: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Error'
+        }
+    },
+    type: 'object',
+    required: ['file_id', 'original_name', 'proposed_name'],
+    title: 'RenamePreview'
+} as const;
+
+export const RenamePreviewRequestSchema = {
+    properties: {
+        folder_id: {
+            type: 'string',
+            title: 'Folder Id'
+        },
+        convention: {
+            type: 'string',
+            title: 'Convention'
+        },
+        instruction: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Instruction'
+        },
+        content_type: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Content Type'
+        }
+    },
+    type: 'object',
+    required: ['folder_id', 'convention'],
+    title: 'RenamePreviewRequest'
+} as const;
+
+export const RenamePreviewResponseSchema = {
+    properties: {
+        previews: {
+            items: {
+                '$ref': '#/components/schemas/RenamePreview'
+            },
+            type: 'array',
+            title: 'Previews'
+        }
+    },
+    type: 'object',
+    required: ['previews'],
+    title: 'RenamePreviewResponse'
+} as const;
+
+export const RenameResultSchema = {
+    properties: {
+        file_id: {
+            type: 'string',
+            title: 'File Id'
+        },
+        success: {
+            type: 'boolean',
+            title: 'Success'
+        },
+        error: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Error'
+        }
+    },
+    type: 'object',
+    required: ['file_id', 'success'],
+    title: 'RenameResult'
+} as const;
+
 export const ServiceAccountCreateSchema = {
     properties: {
         display_name: {
@@ -485,6 +642,32 @@ export const UpdatePasswordSchema = {
     title: 'UpdatePassword'
 } as const;
 
+export const UsageSummarySchema = {
+    properties: {
+        requests_today: {
+            type: 'integer',
+            title: 'Requests Today'
+        },
+        tokens_this_month: {
+            type: 'integer',
+            title: 'Tokens This Month'
+        },
+        limit: {
+            anyOf: [
+                {
+                    '$ref': '#/components/schemas/UserLimitPublic'
+                },
+                {
+                    type: 'null'
+                }
+            ]
+        }
+    },
+    type: 'object',
+    required: ['requests_today', 'tokens_this_month'],
+    title: 'UsageSummary'
+} as const;
+
 export const UserCreateSchema = {
     properties: {
         email: {
@@ -524,6 +707,64 @@ export const UserCreateSchema = {
     type: 'object',
     required: ['email', 'password'],
     title: 'UserCreate'
+} as const;
+
+export const UserLimitPublicSchema = {
+    properties: {
+        max_requests_per_day: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Max Requests Per Day'
+        },
+        max_tokens_per_month: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Max Tokens Per Month'
+        }
+    },
+    type: 'object',
+    title: 'UserLimitPublic'
+} as const;
+
+export const UserLimitUpdateSchema = {
+    properties: {
+        max_requests_per_day: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Max Requests Per Day'
+        },
+        max_tokens_per_month: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Max Tokens Per Month'
+        }
+    },
+    type: 'object',
+    title: 'UserLimitUpdate'
 } as const;
 
 export const UserPublicSchema = {

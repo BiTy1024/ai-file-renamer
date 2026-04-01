@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { DriveReadFoldersResponse, DriveReadFolderFilesData, DriveReadFolderFilesResponse, DriveReadFileMetadataData, DriveReadFileMetadataResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, ServiceAccountsReadServiceAccountsData, ServiceAccountsReadServiceAccountsResponse, ServiceAccountsCreateServiceAccountData, ServiceAccountsCreateServiceAccountResponse, ServiceAccountsReadOwnServiceAccountResponse, ServiceAccountsReadServiceAccountData, ServiceAccountsReadServiceAccountResponse, ServiceAccountsUpdateServiceAccountData, ServiceAccountsUpdateServiceAccountResponse, ServiceAccountsDeleteServiceAccountData, ServiceAccountsDeleteServiceAccountResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { DriveReadFoldersResponse, DriveReadFolderFilesData, DriveReadFolderFilesResponse, DriveReadFileMetadataData, DriveReadFileMetadataResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PrivateCreateUserData, PrivateCreateUserResponse, RenameRenamePreviewData, RenameRenamePreviewResponse, RenameRenameConfirmData, RenameRenameConfirmResponse, ServiceAccountsReadServiceAccountsData, ServiceAccountsReadServiceAccountsResponse, ServiceAccountsCreateServiceAccountData, ServiceAccountsCreateServiceAccountResponse, ServiceAccountsReadOwnServiceAccountResponse, ServiceAccountsReadServiceAccountData, ServiceAccountsReadServiceAccountResponse, ServiceAccountsUpdateServiceAccountData, ServiceAccountsUpdateServiceAccountResponse, ServiceAccountsDeleteServiceAccountData, ServiceAccountsDeleteServiceAccountResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UsersReadUserLimitsData, UsersReadUserLimitsResponse, UsersUpdateUserLimitsData, UsersUpdateUserLimitsResponse, UsersReadUserUsageData, UsersReadUserUsageResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class DriveService {
     /**
@@ -172,6 +172,53 @@ export class PrivateService {
         return __request(OpenAPI, {
             method: 'POST',
             url: '/api/v1/private/users/',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
+
+export class RenameService {
+    /**
+     * Rename Preview
+     * Generate rename previews for all files in a folder.
+     *
+     * Any authenticated user can call this (including Viewer for demo purposes).
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns RenamePreviewResponse Successful Response
+     * @throws ApiError
+     */
+    public static renamePreview(data: RenameRenamePreviewData): CancelablePromise<RenameRenamePreviewResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/rename/preview',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Rename Confirm
+     * Execute file renames on Google Drive.
+     *
+     * Admin and User roles only. Viewer cannot confirm renames.
+     * Partial confirmation: send only the files you want renamed.
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns RenameConfirmResponse Successful Response
+     * @throws ApiError
+     */
+    public static renameConfirm(data: RenameRenameConfirmData): CancelablePromise<RenameRenameConfirmResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/rename/confirm',
             body: data.requestBody,
             mediaType: 'application/json',
             errors: {
@@ -472,6 +519,72 @@ export class UsersService {
         return __request(OpenAPI, {
             method: 'DELETE',
             url: '/api/v1/users/{user_id}',
+            path: {
+                user_id: data.userId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read User Limits
+     * Get rate limits for a user (admin only).
+     * @param data The data for the request.
+     * @param data.userId
+     * @returns UserLimitPublic Successful Response
+     * @throws ApiError
+     */
+    public static readUserLimits(data: UsersReadUserLimitsData): CancelablePromise<UsersReadUserLimitsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/users/{user_id}/limits',
+            path: {
+                user_id: data.userId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Update User Limits
+     * Set rate limits for a user (admin only).
+     * @param data The data for the request.
+     * @param data.userId
+     * @param data.requestBody
+     * @returns UserLimitPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateUserLimits(data: UsersUpdateUserLimitsData): CancelablePromise<UsersUpdateUserLimitsResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/users/{user_id}/limits',
+            path: {
+                user_id: data.userId
+            },
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read User Usage
+     * Get usage summary for a user (admin only).
+     * @param data The data for the request.
+     * @param data.userId
+     * @returns UsageSummary Successful Response
+     * @throws ApiError
+     */
+    public static readUserUsage(data: UsersReadUserUsageData): CancelablePromise<UsersReadUserUsageResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/users/{user_id}/usage',
             path: {
                 user_id: data.userId
             },

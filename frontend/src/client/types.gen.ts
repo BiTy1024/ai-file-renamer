@@ -52,6 +52,43 @@ export type PrivateUserCreate = {
     is_verified?: boolean;
 };
 
+export type RenameConfirmItem = {
+    file_id: string;
+    new_name: string;
+};
+
+export type RenameConfirmRequest = {
+    renames: Array<RenameConfirmItem>;
+};
+
+export type RenameConfirmResponse = {
+    results: Array<RenameResult>;
+};
+
+export type RenamePreview = {
+    file_id: string;
+    original_name: string;
+    proposed_name: string;
+    error?: (string | null);
+};
+
+export type RenamePreviewRequest = {
+    folder_id: string;
+    convention: string;
+    instruction?: (string | null);
+    content_type?: (string | null);
+};
+
+export type RenamePreviewResponse = {
+    previews: Array<RenamePreview>;
+};
+
+export type RenameResult = {
+    file_id: string;
+    success: boolean;
+    error?: (string | null);
+};
+
 export type ServiceAccountCreate = {
     display_name: string;
     description?: (string | null);
@@ -98,12 +135,28 @@ export type UpdatePassword = {
     new_password: string;
 };
 
+export type UsageSummary = {
+    requests_today: number;
+    tokens_this_month: number;
+    limit?: (UserLimitPublic | null);
+};
+
 export type UserCreate = {
     email: string;
     is_active?: boolean;
     role?: UserRole;
     full_name?: (string | null);
     password: string;
+};
+
+export type UserLimitPublic = {
+    max_requests_per_day?: (number | null);
+    max_tokens_per_month?: (number | null);
+};
+
+export type UserLimitUpdate = {
+    max_requests_per_day?: (number | null);
+    max_tokens_per_month?: (number | null);
 };
 
 export type UserPublic = {
@@ -191,6 +244,18 @@ export type PrivateCreateUserData = {
 
 export type PrivateCreateUserResponse = (UserPublic);
 
+export type RenameRenamePreviewData = {
+    requestBody: RenamePreviewRequest;
+};
+
+export type RenameRenamePreviewResponse = (RenamePreviewResponse);
+
+export type RenameRenameConfirmData = {
+    requestBody: RenameConfirmRequest;
+};
+
+export type RenameRenameConfirmResponse = (RenameConfirmResponse);
+
 export type ServiceAccountsReadServiceAccountsData = {
     limit?: number;
     skip?: number;
@@ -272,6 +337,25 @@ export type UsersDeleteUserData = {
 };
 
 export type UsersDeleteUserResponse = (Message);
+
+export type UsersReadUserLimitsData = {
+    userId: string;
+};
+
+export type UsersReadUserLimitsResponse = (UserLimitPublic);
+
+export type UsersUpdateUserLimitsData = {
+    requestBody: UserLimitUpdate;
+    userId: string;
+};
+
+export type UsersUpdateUserLimitsResponse = (UserLimitPublic);
+
+export type UsersReadUserUsageData = {
+    userId: string;
+};
+
+export type UsersReadUserUsageResponse = (UsageSummary);
 
 export type UtilsTestEmailData = {
     emailTo: string;
