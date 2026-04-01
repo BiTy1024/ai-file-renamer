@@ -165,3 +165,52 @@ class DriveFile(SQLModel):
 
 class DriveFileList(SQLModel):
     files: list[DriveFile]
+
+
+# --- Usage tracking models ---
+
+
+class UsageRecord(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    input_tokens: int
+    output_tokens: int
+    model: str = Field(max_length=100)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class UsageRecordPublic(SQLModel):
+    id: uuid.UUID
+    input_tokens: int
+    output_tokens: int
+    model: str
+    created_at: datetime | None = None
+
+
+# --- User rate limit models ---
+
+
+class UserLimit(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, unique=True)
+    max_requests_per_day: int | None = None
+    max_tokens_per_month: int | None = None
+
+
+class UserLimitPublic(SQLModel):
+    max_requests_per_day: int | None = None
+    max_tokens_per_month: int | None = None
+
+
+class UserLimitUpdate(SQLModel):
+    max_requests_per_day: int | None = None
+    max_tokens_per_month: int | None = None
+
+
+class UsageSummary(SQLModel):
+    requests_today: int
+    tokens_this_month: int
+    limit: UserLimitPublic | None = None

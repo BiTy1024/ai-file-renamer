@@ -15,13 +15,22 @@ from app.core.security import get_password_hash, verify_password
 from app.models import (
     Message,
     UpdatePassword,
+    UsageSummary,
     User,
     UserCreate,
+    UserLimit,
+    UserLimitPublic,
+    UserLimitUpdate,
     UserPublic,
     UserRole,
     UsersPublic,
     UserUpdate,
     UserUpdateMe,
+)
+from app.services.usage import (
+    get_user_limit,
+    get_user_requests_today,
+    get_user_tokens_this_month,
 )
 from app.utils import generate_new_account_email, send_email
 
@@ -210,3 +219,59 @@ def delete_user(
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
+
+
+@router.get(
+    "/{user_id}/limits",
+    dependencies=[Depends(require_role(UserRole.ADMIN))],
+    response_model=UserLimitPublic,
+)
+def read_user_limits(session: SessionDep, user_id: uuid.UUID) -> Any:
+    """Get rate limits for a user (admin only)."""
+    limit = get_user_limit(session, user_id)
+    if not limit:
+        return UserLimitPublic()
+    return limit
+
+
+@router.put(
+    "/{user_id}/limits",
+    dependencies=[Depends(require_role(UserRole.ADMIN))],
+    response_model=UserLimitPublic,
+)
+def update_user_limits(
+    session: SessionDep, user_id: uuid.UUID, limit_in: UserLimitUpdate
+) -> Any:
+    """Set rate limits for a user (admin only)."""
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    limit = get_user_limit(session, user_id)
+    if limit:
+        limit_data = limit_in.model_dump(exclude_unset=True)
+        limit.sqlmodel_update(limit_data)
+    else:
+        limit = UserLimit(user_id=user_id, **limit_in.model_dump())
+    session.add(limit)
+    session.commit()
+    session.refresh(limit)
+    return limit
+
+
+@router.get(
+    "/{user_id}/usage",
+    dependencies=[Depends(require_role(UserRole.ADMIN))],
+    response_model=UsageSummary,
+)
+def read_user_usage(session: SessionDep, user_id: uuid.UUID) -> Any:
+    """Get usage summary for a user (admin only)."""
+    requests_today = get_user_requests_today(session, user_id)
+    tokens_month = get_user_tokens_this_month(session, user_id)
+    limit = get_user_limit(session, user_id)
+    limit_public = UserLimitPublic.model_validate(limit) if limit else None
+    return UsageSummary(
+        requests_today=requests_today,
+        tokens_this_month=tokens_month,
+        limit=limit_public,
+    )
