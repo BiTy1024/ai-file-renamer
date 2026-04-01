@@ -6,7 +6,11 @@ from typing import Any
 from sqlmodel import Session
 
 from app.services.claude import ClaudeError, analyze_file_content
-from app.services.file_extractor import download_drive_file, extract_content
+from app.services.file_extractor import (
+    download_drive_file,
+    extract_content,
+    format_metadata_context,
+)
 from app.services.google_drive import DriveError, list_files, rename_file
 from app.services.naming import (
     apply_convention,
@@ -76,14 +80,27 @@ def preview_rename(
             break
 
         try:
-            file_bytes, mime_type = download_drive_file(drive_service, file_id)
+            logger.info(
+                "Processing file %d/%d: %s",
+                len(previews) + 1,
+                len(files),
+                original_name,
+            )
+            file_bytes, mime_type, drive_metadata = download_drive_file(
+                drive_service, file_id
+            )
             content = extract_content(file_bytes, mime_type)
+
+            metadata_context = format_metadata_context(drive_metadata)
+            full_instruction = claude_instruction
+            if metadata_context:
+                full_instruction += f"\n\nFile metadata:\n{metadata_context}"
 
             result = analyze_file_content(
                 text=content.get("text"),
                 image_base64=content.get("image_base64"),
                 mime_type=content.get("mime_type"),
-                instruction=claude_instruction,
+                instruction=full_instruction,
             )
 
             record_usage(

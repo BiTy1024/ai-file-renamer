@@ -6,8 +6,11 @@ test("Rename form is visible on folder page with files", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Drive" })).toBeVisible()
 
   // If there are folders, click the first one
-  const folderCard = page.locator("[data-testid='folder-card']").first()
-  const folderLink = page.getByRole("link").filter({ has: page.locator("text=Folder") }).first()
+  const _folderCard = page.locator("[data-testid='folder-card']").first()
+  const _folderLink = page
+    .getByRole("link")
+    .filter({ has: page.locator("text=Folder") })
+    .first()
 
   // Check if any folder links exist
   const driveContent = page.locator("main")

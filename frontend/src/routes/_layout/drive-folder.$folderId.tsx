@@ -17,6 +17,7 @@ import {
 } from "@/client"
 import { RenameForm } from "@/components/Rename/RenameForm"
 import { RenamePreview } from "@/components/Rename/RenamePreview"
+import { RenameProgress } from "@/components/Rename/RenameProgress"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -242,13 +243,18 @@ function FolderFilesPage() {
           />
         )}
 
-      {/* Loading states */}
-      {(isLoading || renameState === "loading") && (
+      {/* Initial file loading */}
+      {isLoading && renameState === "idle" && (
         <div className="space-y-2">
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={`skeleton-${i}`} className="h-12 rounded" />
           ))}
         </div>
+      )}
+
+      {/* AI processing progress */}
+      {renameState === "loading" && (
+        <RenameProgress fileCount={data?.files?.length ?? 0} />
       )}
 
       {/* Error state */}
