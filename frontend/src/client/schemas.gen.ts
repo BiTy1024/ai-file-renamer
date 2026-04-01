@@ -57,6 +57,116 @@ export const Body_login_login_access_tokenSchema = {
     title: 'Body_login-login_access_token'
 } as const;
 
+export const DriveFileSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        mime_type: {
+            type: 'string',
+            title: 'Mime Type'
+        },
+        size: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Size'
+        },
+        modified_time: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Modified Time'
+        },
+        thumbnail_url: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Thumbnail Url'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name', 'mime_type'],
+    title: 'DriveFile'
+} as const;
+
+export const DriveFileListSchema = {
+    properties: {
+        files: {
+            items: {
+                '$ref': '#/components/schemas/DriveFile'
+            },
+            type: 'array',
+            title: 'Files'
+        }
+    },
+    type: 'object',
+    required: ['files'],
+    title: 'DriveFileList'
+} as const;
+
+export const DriveFolderSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        created_time: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created Time'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name'],
+    title: 'DriveFolder'
+} as const;
+
+export const DriveFolderListSchema = {
+    properties: {
+        folders: {
+            items: {
+                '$ref': '#/components/schemas/DriveFolder'
+            },
+            type: 'array',
+            title: 'Folders'
+        }
+    },
+    type: 'object',
+    required: ['folders'],
+    title: 'DriveFolderList'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {

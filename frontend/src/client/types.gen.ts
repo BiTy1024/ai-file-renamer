@@ -9,6 +9,29 @@ export type Body_login_login_access_token = {
     client_secret?: (string | null);
 };
 
+export type DriveFile = {
+    id: string;
+    name: string;
+    mime_type: string;
+    size?: (string | null);
+    modified_time?: (string | null);
+    thumbnail_url?: (string | null);
+};
+
+export type DriveFileList = {
+    files: Array<DriveFile>;
+};
+
+export type DriveFolder = {
+    id: string;
+    name: string;
+    created_time?: (string | null);
+};
+
+export type DriveFolderList = {
+    folders: Array<DriveFolder>;
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -121,6 +144,20 @@ export type ValidationError = {
         [key: string]: unknown;
     };
 };
+
+export type DriveReadFoldersResponse = (DriveFolderList);
+
+export type DriveReadFolderFilesData = {
+    folderId: string;
+};
+
+export type DriveReadFolderFilesResponse = (DriveFileList);
+
+export type DriveReadFileMetadataData = {
+    fileId: string;
+};
+
+export type DriveReadFileMetadataResponse = (DriveFile);
 
 export type LoginLoginAccessTokenData = {
     formData: Body_login_login_access_token;

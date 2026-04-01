@@ -16,7 +16,9 @@ import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutServiceAccountsRouteImport } from './routes/_layout/service-accounts'
+import { Route as LayoutDriveRouteImport } from './routes/_layout/drive'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutDriveFolderIdRouteImport } from './routes/_layout/drive.$folderId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
   id: '/reset-password',
@@ -52,10 +54,20 @@ const LayoutServiceAccountsRoute = LayoutServiceAccountsRouteImport.update({
   path: '/service-accounts',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutDriveRoute = LayoutDriveRouteImport.update({
+  id: '/drive',
+  path: '/drive',
+  getParentRoute: () => LayoutRoute,
+} as any)
 const LayoutAdminRoute = LayoutAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
   getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutDriveFolderIdRoute = LayoutDriveFolderIdRouteImport.update({
+  id: '/$folderId',
+  path: '/$folderId',
+  getParentRoute: () => LayoutDriveRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
@@ -64,17 +76,21 @@ export interface FileRoutesByFullPath {
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/admin': typeof LayoutAdminRoute
+  '/drive': typeof LayoutDriveRouteWithChildren
   '/service-accounts': typeof LayoutServiceAccountsRoute
   '/settings': typeof LayoutSettingsRoute
+  '/drive/$folderId': typeof LayoutDriveFolderIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/admin': typeof LayoutAdminRoute
+  '/drive': typeof LayoutDriveRouteWithChildren
   '/service-accounts': typeof LayoutServiceAccountsRoute
   '/settings': typeof LayoutSettingsRoute
   '/': typeof LayoutIndexRoute
+  '/drive/$folderId': typeof LayoutDriveFolderIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -83,9 +99,11 @@ export interface FileRoutesById {
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_layout/admin': typeof LayoutAdminRoute
+  '/_layout/drive': typeof LayoutDriveRouteWithChildren
   '/_layout/service-accounts': typeof LayoutServiceAccountsRoute
   '/_layout/settings': typeof LayoutSettingsRoute
   '/_layout/': typeof LayoutIndexRoute
+  '/_layout/drive/$folderId': typeof LayoutDriveFolderIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -95,17 +113,21 @@ export interface FileRouteTypes {
     | '/recover-password'
     | '/reset-password'
     | '/admin'
+    | '/drive'
     | '/service-accounts'
     | '/settings'
+    | '/drive/$folderId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/recover-password'
     | '/reset-password'
     | '/admin'
+    | '/drive'
     | '/service-accounts'
     | '/settings'
     | '/'
+    | '/drive/$folderId'
   id:
     | '__root__'
     | '/_layout'
@@ -113,9 +135,11 @@ export interface FileRouteTypes {
     | '/recover-password'
     | '/reset-password'
     | '/_layout/admin'
+    | '/_layout/drive'
     | '/_layout/service-accounts'
     | '/_layout/settings'
     | '/_layout/'
+    | '/_layout/drive/$folderId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -176,6 +200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutServiceAccountsRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/drive': {
+      id: '/_layout/drive'
+      path: '/drive'
+      fullPath: '/drive'
+      preLoaderRoute: typeof LayoutDriveRouteImport
+      parentRoute: typeof LayoutRoute
+    }
     '/_layout/admin': {
       id: '/_layout/admin'
       path: '/admin'
@@ -183,11 +214,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/drive/$folderId': {
+      id: '/_layout/drive/$folderId'
+      path: '/$folderId'
+      fullPath: '/drive/$folderId'
+      preLoaderRoute: typeof LayoutDriveFolderIdRouteImport
+      parentRoute: typeof LayoutDriveRoute
+    }
   }
 }
 
+interface LayoutDriveRouteChildren {
+  LayoutDriveFolderIdRoute: typeof LayoutDriveFolderIdRoute
+}
+
+const LayoutDriveRouteChildren: LayoutDriveRouteChildren = {
+  LayoutDriveFolderIdRoute: LayoutDriveFolderIdRoute,
+}
+
+const LayoutDriveRouteWithChildren = LayoutDriveRoute._addFileChildren(
+  LayoutDriveRouteChildren,
+)
+
 interface LayoutRouteChildren {
   LayoutAdminRoute: typeof LayoutAdminRoute
+  LayoutDriveRoute: typeof LayoutDriveRouteWithChildren
   LayoutServiceAccountsRoute: typeof LayoutServiceAccountsRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
@@ -195,6 +246,7 @@ interface LayoutRouteChildren {
 
 const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutAdminRoute: LayoutAdminRoute,
+  LayoutDriveRoute: LayoutDriveRouteWithChildren,
   LayoutServiceAccountsRoute: LayoutServiceAccountsRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
   LayoutIndexRoute: LayoutIndexRoute,
