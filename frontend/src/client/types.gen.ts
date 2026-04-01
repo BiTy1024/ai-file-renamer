@@ -29,6 +29,42 @@ export type PrivateUserCreate = {
     is_verified?: boolean;
 };
 
+export type ServiceAccountCreate = {
+    display_name: string;
+    description?: (string | null);
+    credentials_json: string;
+    user_id: string;
+};
+
+export type ServiceAccountPublic = {
+    display_name: string;
+    description?: (string | null);
+    id: string;
+    user_id: string;
+    created_at?: (string | null);
+};
+
+export type ServiceAccountPublicWithEmail = {
+    display_name: string;
+    description?: (string | null);
+    id: string;
+    user_id: string;
+    created_at?: (string | null);
+    client_email?: (string | null);
+};
+
+export type ServiceAccountsPublic = {
+    data: Array<ServiceAccountPublic>;
+    count: number;
+};
+
+export type ServiceAccountUpdate = {
+    display_name?: (string | null);
+    description?: (string | null);
+    credentials_json?: (string | null);
+    user_id?: (string | null);
+};
+
 export type Token = {
     access_token: string;
     token_type?: string;
@@ -117,6 +153,40 @@ export type PrivateCreateUserData = {
 };
 
 export type PrivateCreateUserResponse = (UserPublic);
+
+export type ServiceAccountsReadServiceAccountsData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type ServiceAccountsReadServiceAccountsResponse = (ServiceAccountsPublic);
+
+export type ServiceAccountsCreateServiceAccountData = {
+    requestBody: ServiceAccountCreate;
+};
+
+export type ServiceAccountsCreateServiceAccountResponse = (ServiceAccountPublic);
+
+export type ServiceAccountsReadOwnServiceAccountResponse = (ServiceAccountPublicWithEmail);
+
+export type ServiceAccountsReadServiceAccountData = {
+    saId: string;
+};
+
+export type ServiceAccountsReadServiceAccountResponse = (ServiceAccountPublic);
+
+export type ServiceAccountsUpdateServiceAccountData = {
+    requestBody: ServiceAccountUpdate;
+    saId: string;
+};
+
+export type ServiceAccountsUpdateServiceAccountResponse = (ServiceAccountPublic);
+
+export type ServiceAccountsDeleteServiceAccountData = {
+    saId: string;
+};
+
+export type ServiceAccountsDeleteServiceAccountResponse = (Message);
 
 export type UsersReadUsersData = {
     limit?: number;
