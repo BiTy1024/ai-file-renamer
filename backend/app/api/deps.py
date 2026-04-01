@@ -8,10 +8,11 @@ from jwt.exceptions import InvalidTokenError
 from pydantic import ValidationError
 from sqlmodel import Session
 
+from app import crud
 from app.core import security
 from app.core.config import settings
 from app.core.db import engine
-from app.models import TokenPayload, User, UserRole
+from app.models import ServiceAccount, TokenPayload, User, UserRole
 
 reusable_oauth2 = OAuth2PasswordBearer(
     tokenUrl=f"{settings.API_V1_STR}/login/access-token"
@@ -58,3 +59,17 @@ def require_role(*roles: UserRole) -> Callable[[User], User]:
         return current_user
 
     return check_role
+
+
+def get_current_user_sa(
+    session: SessionDep, current_user: CurrentUser
+) -> ServiceAccount:
+    sa = crud.get_service_account_by_user_id(session=session, user_id=current_user.id)
+    if not sa:
+        raise HTTPException(
+            status_code=404, detail="No service account assigned to your account"
+        )
+    return sa
+
+
+CurrentUserSA = Annotated[ServiceAccount, Depends(get_current_user_sa)]
