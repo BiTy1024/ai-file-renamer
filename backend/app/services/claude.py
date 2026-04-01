@@ -85,10 +85,17 @@ def analyze_file_content(
         first_block.text if first_block and hasattr(first_block, "text") else ""
     )
 
+    logger.info("Claude raw response: %s", response_text[:500])
+
     try:
         fields = json.loads(response_text)
     except json.JSONDecodeError:
+        logger.warning(
+            "Failed to parse Claude response as JSON: %s", response_text[:200]
+        )
         fields = {"raw_response": response_text}
+
+    logger.info("Claude extracted fields: %s", fields)
 
     return ClaudeResponse(
         fields=fields,

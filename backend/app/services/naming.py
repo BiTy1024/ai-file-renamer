@@ -1,6 +1,6 @@
 import re
 
-PLACEHOLDER_PATTERN = re.compile(r"\[([A-Z][A-Z0-9_]*)\]")
+PLACEHOLDER_PATTERN = re.compile(r"\[([A-Za-z][A-Za-z0-9_]*)\]")
 INVALID_FILENAME_CHARS = re.compile(r'[/\\:*?"<>|]')
 MULTI_UNDERSCORE = re.compile(r"_+")
 
@@ -84,10 +84,12 @@ def apply_convention(
         → "2026-01_Acme.pdf"
     """
     result = convention
-    for field_name, value in fields.items():
-        result = result.replace(f"[{field_name}]", str(value))
+    fields_lower = {k.lower(): v for k, v in fields.items()}
+    for match in PLACEHOLDER_PATTERN.finditer(convention):
+        placeholder = match.group(1)
+        value = fields_lower.get(placeholder.lower(), "unknown")
+        result = result.replace(f"[{placeholder}]", str(value))
 
-    # Remove any remaining unresolved placeholders
     result = PLACEHOLDER_PATTERN.sub("unknown", result)
 
     result = sanitize_filename(result)
