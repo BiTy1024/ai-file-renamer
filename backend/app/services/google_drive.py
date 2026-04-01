@@ -40,6 +40,8 @@ def list_folders(service: Any) -> list[dict[str, Any]]:
                 fields="files(id,name,createdTime)",
                 orderBy="name",
                 pageSize=100,
+                includeItemsFromAllDrives=True,
+                supportsAllDrives=True,
             )
             .execute()
         )
@@ -62,6 +64,8 @@ def list_files(service: Any, folder_id: str) -> list[dict[str, Any]]:
                 fields="files(id,name,mimeType,size,modifiedTime,thumbnailLink)",
                 orderBy="name",
                 pageSize=200,
+                includeItemsFromAllDrives=True,
+                supportsAllDrives=True,
             )
             .execute()
         )
@@ -84,6 +88,7 @@ def get_file_metadata(service: Any, file_id: str) -> dict[str, Any]:
             .get(
                 fileId=file_id,
                 fields="id,name,mimeType,size,modifiedTime,thumbnailLink",
+                supportsAllDrives=True,
             )
             .execute()
         )
