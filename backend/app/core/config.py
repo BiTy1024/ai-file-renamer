@@ -92,6 +92,7 @@ class Settings(BaseSettings):
 
     CLAUDE_API_KEY: str | None = None
     CLAUDE_MODEL: str = "claude-sonnet-4-20250514"
+    AI_LANGUAGE: str = "German"
 
     EMAIL_TEST_USER: EmailStr = "test@example.com"
     FIRST_SUPERUSER: EmailStr

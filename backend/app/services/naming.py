@@ -40,8 +40,11 @@ def build_claude_instruction(
 
     Tells Claude which fields to extract and return as JSON.
     """
+    from app.core.config import settings
+
     fields = parse_convention(convention)
     fields_list = ", ".join(fields)
+    language = settings.AI_LANGUAGE
 
     type_hint = ""
     if content_type:
@@ -50,14 +53,17 @@ def build_claude_instruction(
     return (
         f"Analyze the provided file content and extract the following fields: {fields_list}.{type_hint}\n"
         f"Return ONLY a JSON object with these exact keys: {fields_list}.\n"
+        f"IMPORTANT: All text values MUST be in {language}.\n"
         "Rules:\n"
         '- Use simple values suitable for filenames (no special characters like /\\:*?"<>|)\n'
         "- Replace spaces with underscores\n"
         "- Keep values concise (max 50 chars each)\n"
         "- For DATE fields: use YYYY-MM-DD format. Check file metadata, EXIF data, or content for dates.\n"
-        "- For DESCRIPTION fields on images: describe what is visible in the image (objects, people, activities, location)\n"
+        "- For DESCRIPTION fields on images: describe what is visible in the image in detail "
+        f"(objects, people, activities, location) — in {language}\n"
         "- If metadata provides a date (e.g. 'Photo taken' or 'File created'), prefer that over 'unknown'\n"
         "- Only use 'unknown' as absolute last resort when no information is available at all.\n"
+        "- Always incorporate the user's additional instructions if provided.\n"
         "Example response: {" + ", ".join('"' + f + '": "value"' for f in fields) + "}"
     )
 
