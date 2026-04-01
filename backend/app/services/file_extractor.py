@@ -16,7 +16,8 @@ IMAGE_TYPES = {"image/png", "image/jpeg", "image/gif", "image/webp"}
 def extract_pdf_text(file_bytes: bytes) -> str:
     doc = pymupdf.open(stream=file_bytes, filetype="pdf")  # type: ignore[no-untyped-call]
     text_parts = []
-    for page in doc:
+    for i in range(len(doc)):  # type: ignore[arg-type]
+        page = doc[i]  # type: ignore[index]
         text_parts.append(page.get_text())  # type: ignore[no-untyped-call]
     doc.close()  # type: ignore[no-untyped-call]
     return "\n".join(text_parts).strip()
