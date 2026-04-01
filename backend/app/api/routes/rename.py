@@ -1,11 +1,14 @@
 from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException
+from sqlmodel import col, func, select
 
 from app.api.deps import CurrentUser, CurrentUserSA, SessionDep, require_role
 from app.models import (
     RenameConfirmRequest,
     RenameConfirmResponse,
+    RenameHistoryResponse,
+    RenameLog,
     RenamePreview,
     RenamePreviewRequest,
     RenamePreviewResponse,
@@ -73,6 +76,8 @@ def rename_preview(
 )
 def rename_confirm(
     *,
+    session: SessionDep,
+    current_user: CurrentUser,
     sa: CurrentUserSA,
     request: RenameConfirmRequest,
 ) -> Any:
@@ -87,12 +92,58 @@ def rename_confirm(
         raise HTTPException(status_code=e.status_code, detail=e.message)
 
     renames = [
-        {"file_id": item.file_id, "new_name": item.new_name} for item in request.renames
+        {
+            "file_id": item.file_id,
+            "new_name": item.new_name,
+            "original_name": item.original_name,
+        }
+        for item in request.renames
     ]
-    items = execute_rename(drive_service=drive_service, renames=renames)
+    items = execute_rename(
+        drive_service=drive_service,
+        session=session,
+        user_id=current_user.id,
+        folder_id=request.folder_id,
+        renames=renames,
+    )
 
     results = [
         RenameResult(file_id=item.file_id, success=item.success, error=item.error)
         for item in items
     ]
     return RenameConfirmResponse(results=results)
+
+
+@router.get("/history", response_model=RenameHistoryResponse)
+def read_rename_history(
+    session: SessionDep,
+    current_user: CurrentUser,
+    skip: int = 0,
+    limit: int = 100,
+) -> Any:
+    """Get rename history. Admin sees all, others see only their own."""
+    if current_user.role == UserRole.ADMIN:
+        count_stmt = select(func.count()).select_from(RenameLog)
+        query = (
+            select(RenameLog)
+            .order_by(col(RenameLog.created_at).desc())
+            .offset(skip)
+            .limit(limit)
+        )
+    else:
+        count_stmt = (
+            select(func.count())
+            .select_from(RenameLog)
+            .where(RenameLog.user_id == current_user.id)
+        )
+        query = (
+            select(RenameLog)
+            .where(RenameLog.user_id == current_user.id)
+            .order_by(col(RenameLog.created_at).desc())
+            .offset(skip)
+            .limit(limit)
+        )
+
+    count = session.exec(count_stmt).one()
+    logs = session.exec(query).all()
+    return RenameHistoryResponse(data=logs, count=count)

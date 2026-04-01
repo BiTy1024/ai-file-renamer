@@ -136,20 +136,37 @@ def preview_rename(
 def execute_rename(
     *,
     drive_service: Any,
+    session: Session | None = None,
+    user_id: uuid.UUID | None = None,
+    folder_id: str | None = None,
     renames: list[dict[str, str]],
 ) -> list[RenameResultItem]:
     """Execute file renames on Google Drive.
 
-    Each item in renames should have 'file_id' and 'new_name'.
+    Each item in renames should have 'file_id', 'new_name', and optionally 'original_name'.
+    If session/user_id/folder_id provided, logs successful renames.
     """
+    from app.models import RenameLog
+
     results: list[RenameResultItem] = []
 
     for item in renames:
         file_id = item["file_id"]
         new_name = item["new_name"]
+        original_name = item.get("original_name", "")
         try:
             rename_file(drive_service, file_id, new_name)
             results.append(RenameResultItem(file_id=file_id, success=True))
+
+            if session and user_id and folder_id:
+                log = RenameLog(
+                    user_id=user_id,
+                    folder_id=folder_id,
+                    original_name=original_name,
+                    new_name=new_name,
+                )
+                session.add(log)
+                session.commit()
         except DriveError as e:
             results.append(
                 RenameResultItem(file_id=file_id, success=False, error=e.message)
