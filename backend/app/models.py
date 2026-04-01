@@ -254,3 +254,42 @@ class RenameResult(SQLModel):
 
 class RenameConfirmResponse(SQLModel):
     results: list[RenameResult]
+
+
+# --- Convention preset models ---
+
+
+class ConventionPresetBase(SQLModel):
+    name: str = Field(max_length=255)
+    convention: str = Field(max_length=500)
+    description: str | None = Field(default=None, max_length=500)
+    content_type: str | None = Field(default=None, max_length=100)
+
+
+class ConventionPresetCreate(ConventionPresetBase):
+    pass
+
+
+class ConventionPresetUpdate(SQLModel):
+    name: str | None = Field(default=None, max_length=255)
+    convention: str | None = Field(default=None, max_length=500)
+    description: str | None = Field(default=None, max_length=500)
+    content_type: str | None = Field(default=None, max_length=100)
+
+
+class ConventionPreset(ConventionPresetBase, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class ConventionPresetPublic(ConventionPresetBase):
+    id: uuid.UUID
+    created_at: datetime | None = None
+
+
+class ConventionPresetsPublic(SQLModel):
+    data: list[ConventionPresetPublic]
+    count: int

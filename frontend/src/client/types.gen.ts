@@ -9,6 +9,34 @@ export type Body_login_login_access_token = {
     client_secret?: (string | null);
 };
 
+export type ConventionPresetCreate = {
+    name: string;
+    convention: string;
+    description?: (string | null);
+    content_type?: (string | null);
+};
+
+export type ConventionPresetPublic = {
+    name: string;
+    convention: string;
+    description?: (string | null);
+    content_type?: (string | null);
+    id: string;
+    created_at?: (string | null);
+};
+
+export type ConventionPresetsPublic = {
+    data: Array<ConventionPresetPublic>;
+    count: number;
+};
+
+export type ConventionPresetUpdate = {
+    name?: (string | null);
+    convention?: (string | null);
+    description?: (string | null);
+    content_type?: (string | null);
+};
+
 export type DriveFile = {
     id: string;
     name: string;
@@ -237,6 +265,32 @@ export type LoginRecoverPasswordHtmlContentData = {
 };
 
 export type LoginRecoverPasswordHtmlContentResponse = (string);
+
+export type PresetsReadPresetsData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type PresetsReadPresetsResponse = (ConventionPresetsPublic);
+
+export type PresetsCreatePresetData = {
+    requestBody: ConventionPresetCreate;
+};
+
+export type PresetsCreatePresetResponse = (ConventionPresetPublic);
+
+export type PresetsUpdatePresetData = {
+    presetId: string;
+    requestBody: ConventionPresetUpdate;
+};
+
+export type PresetsUpdatePresetResponse = (ConventionPresetPublic);
+
+export type PresetsDeletePresetData = {
+    presetId: string;
+};
+
+export type PresetsDeletePresetResponse = (Message);
 
 export type PrivateCreateUserData = {
     requestBody: PrivateUserCreate;
