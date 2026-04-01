@@ -20,6 +20,8 @@ dependencies = [
     "pyjwt<3.0.0,>=2.8.0",
     "pwdlib[argon2,bcrypt]>=0.3.0",
     "cryptography>=46.0.6",
+    "google-api-python-client>=2.193.0",
+    "google-auth>=2.49.1",
 ]
 
 [dependency-groups]

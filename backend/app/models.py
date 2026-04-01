@@ -139,3 +139,29 @@ class ServiceAccountPublicWithEmail(ServiceAccountPublic):
 class ServiceAccountsPublic(SQLModel):
     data: list[ServiceAccountPublic]
     count: int
+
+
+# --- Google Drive response models ---
+
+
+class DriveFolder(SQLModel):
+    id: str
+    name: str
+    created_time: str | None = None
+
+
+class DriveFolderList(SQLModel):
+    folders: list[DriveFolder]
+
+
+class DriveFile(SQLModel):
+    id: str
+    name: str
+    mime_type: str
+    size: str | None = None
+    modified_time: str | None = None
+    thumbnail_url: str | None = None
+
+
+class DriveFileList(SQLModel):
+    files: list[DriveFile]
