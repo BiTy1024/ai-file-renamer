@@ -3,7 +3,11 @@
 # Exit in case of error
 set -e
 
-docker compose down --remove-orphans # Remove possibly previous broken stacks left hanging after an error (no -v to preserve DB data)
+# Use a separate project name so test containers and volumes
+# are completely isolated from the dev environment.
+export COMPOSE_PROJECT_NAME=ai-namer-test
+
+docker compose down -v --remove-orphans # Clean slate for tests
 
 if [ $(uname -s) = "Linux" ]; then
     echo "Remove __pycache__ files"
@@ -13,3 +17,4 @@ fi
 docker compose build
 docker compose up -d
 docker compose exec -T backend bash scripts/tests-start.sh "$@"
+docker compose down -v --remove-orphans # Clean up after tests
