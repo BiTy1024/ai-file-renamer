@@ -33,6 +33,7 @@ async def rate_limit_handler(request: Request, exc: RateLimitExceeded) -> JSONRe
         content={"detail": "Too many requests. Please try again later."},
     )
 
+
 # Set all CORS enabled origins
 if settings.all_cors_origins:
     app.add_middleware(
