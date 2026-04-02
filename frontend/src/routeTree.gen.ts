@@ -14,6 +14,7 @@ import { Route as RecoverPasswordRouteImport } from './routes/recover-password'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as LayoutRouteImport } from './routes/_layout'
 import { Route as LayoutIndexRouteImport } from './routes/_layout/index'
+import { Route as LayoutUsageRouteImport } from './routes/_layout/usage'
 import { Route as LayoutSettingsRouteImport } from './routes/_layout/settings'
 import { Route as LayoutServiceAccountsRouteImport } from './routes/_layout/service-accounts'
 import { Route as LayoutRenameHistoryRouteImport } from './routes/_layout/rename-history'
@@ -44,6 +45,11 @@ const LayoutRoute = LayoutRouteImport.update({
 const LayoutIndexRoute = LayoutIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutUsageRoute = LayoutUsageRouteImport.update({
+  id: '/usage',
+  path: '/usage',
   getParentRoute: () => LayoutRoute,
 } as any)
 const LayoutSettingsRoute = LayoutSettingsRouteImport.update({
@@ -94,6 +100,7 @@ export interface FileRoutesByFullPath {
   '/rename-history': typeof LayoutRenameHistoryRoute
   '/service-accounts': typeof LayoutServiceAccountsRoute
   '/settings': typeof LayoutSettingsRoute
+  '/usage': typeof LayoutUsageRoute
   '/drive-folder/$folderId': typeof LayoutDriveFolderFolderIdRoute
 }
 export interface FileRoutesByTo {
@@ -106,6 +113,7 @@ export interface FileRoutesByTo {
   '/rename-history': typeof LayoutRenameHistoryRoute
   '/service-accounts': typeof LayoutServiceAccountsRoute
   '/settings': typeof LayoutSettingsRoute
+  '/usage': typeof LayoutUsageRoute
   '/': typeof LayoutIndexRoute
   '/drive-folder/$folderId': typeof LayoutDriveFolderFolderIdRoute
 }
@@ -121,6 +129,7 @@ export interface FileRoutesById {
   '/_layout/rename-history': typeof LayoutRenameHistoryRoute
   '/_layout/service-accounts': typeof LayoutServiceAccountsRoute
   '/_layout/settings': typeof LayoutSettingsRoute
+  '/_layout/usage': typeof LayoutUsageRoute
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/drive-folder/$folderId': typeof LayoutDriveFolderFolderIdRoute
 }
@@ -137,6 +146,7 @@ export interface FileRouteTypes {
     | '/rename-history'
     | '/service-accounts'
     | '/settings'
+    | '/usage'
     | '/drive-folder/$folderId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -149,6 +159,7 @@ export interface FileRouteTypes {
     | '/rename-history'
     | '/service-accounts'
     | '/settings'
+    | '/usage'
     | '/'
     | '/drive-folder/$folderId'
   id:
@@ -163,6 +174,7 @@ export interface FileRouteTypes {
     | '/_layout/rename-history'
     | '/_layout/service-accounts'
     | '/_layout/settings'
+    | '/_layout/usage'
     | '/_layout/'
     | '/_layout/drive-folder/$folderId'
   fileRoutesById: FileRoutesById
@@ -209,6 +221,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof LayoutIndexRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/usage': {
+      id: '/_layout/usage'
+      path: '/usage'
+      fullPath: '/usage'
+      preLoaderRoute: typeof LayoutUsageRouteImport
       parentRoute: typeof LayoutRoute
     }
     '/_layout/settings': {
@@ -270,6 +289,7 @@ interface LayoutRouteChildren {
   LayoutRenameHistoryRoute: typeof LayoutRenameHistoryRoute
   LayoutServiceAccountsRoute: typeof LayoutServiceAccountsRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
+  LayoutUsageRoute: typeof LayoutUsageRoute
   LayoutIndexRoute: typeof LayoutIndexRoute
   LayoutDriveFolderFolderIdRoute: typeof LayoutDriveFolderFolderIdRoute
 }
@@ -281,6 +301,7 @@ const LayoutRouteChildren: LayoutRouteChildren = {
   LayoutRenameHistoryRoute: LayoutRenameHistoryRoute,
   LayoutServiceAccountsRoute: LayoutServiceAccountsRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
+  LayoutUsageRoute: LayoutUsageRoute,
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutDriveFolderFolderIdRoute: LayoutDriveFolderFolderIdRoute,
 }
