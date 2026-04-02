@@ -370,9 +370,7 @@ def test_search_folders_returns_results(
     mock_get_service.return_value = MagicMock()
     mock_search.return_value = MOCK_SEARCH_RESULTS
 
-    r = client.get(
-        f"{settings.API_V1_STR}/drive/folders/search?q=inv", headers=headers
-    )
+    r = client.get(f"{settings.API_V1_STR}/drive/folders/search?q=inv", headers=headers)
     assert r.status_code == 200
     data = r.json()
     assert len(data["results"]) == 2
@@ -396,9 +394,7 @@ def test_search_folders_returns_empty_list(
     mock_get_service.return_value = MagicMock()
     mock_search.return_value = []
 
-    r = client.get(
-        f"{settings.API_V1_STR}/drive/folders/search?q=xyz", headers=headers
-    )
+    r = client.get(f"{settings.API_V1_STR}/drive/folders/search?q=xyz", headers=headers)
     assert r.status_code == 200
     assert r.json()["results"] == []
 
@@ -411,9 +407,7 @@ def test_search_folders_missing_query_returns_422(
     _, _, headers = _create_user_with_sa(
         db, client, superuser_token_headers, UserRole.USER
     )
-    r = client.get(
-        f"{settings.API_V1_STR}/drive/folders/search", headers=headers
-    )
+    r = client.get(f"{settings.API_V1_STR}/drive/folders/search", headers=headers)
     assert r.status_code == 422
 
 
