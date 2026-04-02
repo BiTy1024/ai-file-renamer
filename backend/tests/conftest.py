@@ -25,17 +25,21 @@ def db() -> Generator[Session, None, None]:
     with Session(engine) as session:
         init_db(session)
         yield session
-        for model in (
-            RefreshToken,
-            RenameLog,
-            UsageRecord,
-            UserLimit,
-            ConventionPreset,
-            ServiceAccount,
-            User,
-        ):
-            session.execute(delete(model))
-        session.commit()
+        # Only wipe data when running in a dedicated test environment.
+        # Skipping this in 'local' prevents accidental dev data loss when tests
+        # are run directly inside the dev container.
+        if settings.ENVIRONMENT == "test":
+            for model in (
+                RefreshToken,
+                RenameLog,
+                UsageRecord,
+                UserLimit,
+                ConventionPreset,
+                ServiceAccount,
+                User,
+            ):
+                session.execute(delete(model))
+            session.commit()
 
 
 @pytest.fixture(scope="module")
