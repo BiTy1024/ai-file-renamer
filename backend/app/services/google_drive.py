@@ -55,6 +55,99 @@ def list_folders(service: Any) -> list[dict[str, Any]]:
         raise DriveError(f"Google Drive API error: {e}", status_code=e.resp.status)
 
 
+def list_subfolders(service: Any, folder_id: str) -> list[dict[str, Any]]:
+    try:
+        results = (
+            service.files()
+            .list(
+                q=f"'{folder_id}' in parents and mimeType='application/vnd.google-apps.folder' and trashed=false",
+                fields="files(id,name,createdTime)",
+                orderBy="name",
+                pageSize=100,
+                includeItemsFromAllDrives=True,
+                supportsAllDrives=True,
+            )
+            .execute()
+        )
+        folders: list[dict[str, Any]] = results.get("files", [])
+        return folders
+    except HttpError as e:
+        if e.resp.status == 404:
+            raise DriveError("Folder not found", status_code=404)
+        if e.resp.status == 403:
+            raise DriveError(
+                "Missing permissions to access this folder", status_code=403
+            )
+        raise DriveError(f"Google Drive API error: {e}", status_code=e.resp.status)
+
+
+def search_folders(service: Any, query: str) -> list[dict[str, Any]]:
+    """Search folders by name. Returns results with immediate parent name for path display."""
+    try:
+        # Escape single quotes in query to prevent injection into Drive query syntax
+        safe_query = query.replace("'", "\\'")
+        results = (
+            service.files()
+            .list(
+                q=f"name contains '{safe_query}' and mimeType='application/vnd.google-apps.folder' and trashed=false",
+                fields="files(id,name,parents)",
+                orderBy="name",
+                pageSize=50,
+                includeItemsFromAllDrives=True,
+                supportsAllDrives=True,
+            )
+            .execute()
+        )
+        folders: list[dict[str, Any]] = results.get("files", [])
+    except HttpError as e:
+        if e.resp.status == 403:
+            raise DriveError(
+                "Missing permissions to access Google Drive", status_code=403
+            )
+        raise DriveError(f"Google Drive API error: {e}", status_code=e.resp.status)
+
+    if not folders:
+        return []
+
+    # Collect unique parent IDs to resolve parent names in one batch call
+    parent_ids: set[str] = set()
+    for folder in folders:
+        if folder.get("parents"):
+            parent_ids.add(folder["parents"][0])
+
+    parent_names: dict[str, str] = {}
+    if parent_ids:
+        id_filter = " or ".join(f"id='{pid}'" for pid in parent_ids)
+        try:
+            parent_results = (
+                service.files()
+                .list(
+                    q=f"({id_filter}) and trashed=false",
+                    fields="files(id,name)",
+                    pageSize=len(parent_ids),
+                    includeItemsFromAllDrives=True,
+                    supportsAllDrives=True,
+                )
+                .execute()
+            )
+            for p in parent_results.get("files", []):
+                parent_names[p["id"]] = p["name"]
+        except HttpError:
+            pass  # Parent names are best-effort; missing them is non-fatal
+
+    enriched: list[dict[str, Any]] = []
+    for folder in folders:
+        parent_id = folder["parents"][0] if folder.get("parents") else None
+        enriched.append(
+            {
+                "id": folder["id"],
+                "name": folder["name"],
+                "parent_name": parent_names.get(parent_id) if parent_id else None,
+            }
+        )
+    return enriched
+
+
 def list_files(service: Any, folder_id: str) -> list[dict[str, Any]]:
     try:
         results = (
