@@ -342,6 +342,48 @@ export const DriveFolderListSchema = {
     title: 'DriveFolderList'
 } as const;
 
+export const DriveFolderSearchResultSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            title: 'Id'
+        },
+        name: {
+            type: 'string',
+            title: 'Name'
+        },
+        parent_name: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Parent Name'
+        }
+    },
+    type: 'object',
+    required: ['id', 'name'],
+    title: 'DriveFolderSearchResult'
+} as const;
+
+export const DriveFolderSearchResultListSchema = {
+    properties: {
+        results: {
+            items: {
+                '$ref': '#/components/schemas/DriveFolderSearchResult'
+            },
+            type: 'array',
+            title: 'Results'
+        }
+    },
+    type: 'object',
+    required: ['results'],
+    title: 'DriveFolderSearchResultList'
+} as const;
+
 export const HTTPValidationErrorSchema = {
     properties: {
         detail: {
@@ -959,7 +1001,8 @@ export const UserLimitPublicSchema = {
         max_requests_per_day: {
             anyOf: [
                 {
-                    type: 'integer'
+                    type: 'integer',
+                    minimum: 1
                 },
                 {
                     type: 'null'
@@ -970,7 +1013,8 @@ export const UserLimitPublicSchema = {
         max_tokens_per_month: {
             anyOf: [
                 {
-                    type: 'integer'
+                    type: 'integer',
+                    minimum: 1
                 },
                 {
                     type: 'null'
@@ -988,7 +1032,8 @@ export const UserLimitUpdateSchema = {
         max_requests_per_day: {
             anyOf: [
                 {
-                    type: 'integer'
+                    type: 'integer',
+                    minimum: 1
                 },
                 {
                     type: 'null'
@@ -999,7 +1044,8 @@ export const UserLimitUpdateSchema = {
         max_tokens_per_month: {
             anyOf: [
                 {
-                    type: 'integer'
+                    type: 'integer',
+                    minimum: 1
                 },
                 {
                     type: 'null'

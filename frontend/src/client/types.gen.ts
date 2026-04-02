@@ -60,6 +60,16 @@ export type DriveFolderList = {
     folders: Array<DriveFolder>;
 };
 
+export type DriveFolderSearchResult = {
+    id: string;
+    name: string;
+    parent_name?: (string | null);
+};
+
+export type DriveFolderSearchResultList = {
+    results: Array<DriveFolderSearchResult>;
+};
+
 export type HTTPValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -243,6 +253,18 @@ export type ValidationError = {
 };
 
 export type DriveReadFoldersResponse = (DriveFolderList);
+
+export type DriveSearchDriveFoldersData = {
+    q: string;
+};
+
+export type DriveSearchDriveFoldersResponse = (DriveFolderSearchResultList);
+
+export type DriveReadFolderSubfoldersData = {
+    folderId: string;
+};
+
+export type DriveReadFolderSubfoldersResponse = (DriveFolderList);
 
 export type DriveReadFolderFilesData = {
     folderId: string;

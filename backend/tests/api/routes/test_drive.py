@@ -247,3 +247,191 @@ def test_viewer_can_list_folders(
     r = client.get(f"{settings.API_V1_STR}/drive/folders", headers=headers)
     assert r.status_code == 200
     assert len(r.json()["folders"]) == 2
+
+
+# --- Subfolders ---
+
+
+MOCK_SUBFOLDERS = [
+    {"id": "sf1", "name": "Sub A", "createdTime": "2026-01-01T00:00:00Z"},
+    {"id": "sf2", "name": "Sub B", "createdTime": "2026-02-01T00:00:00Z"},
+]
+
+MOCK_SEARCH_RESULTS = [
+    {"id": "f1", "name": "Invoices", "parent_name": "Root"},
+    {"id": "f2", "name": "Invoices 2024", "parent_name": None},
+]
+
+
+@patch("app.api.routes.drive.get_drive_service")
+@patch("app.api.routes.drive.list_subfolders")
+def test_list_subfolders_returns_list(
+    mock_list_subfolders: MagicMock,
+    mock_get_service: MagicMock,
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    _, _, headers = _create_user_with_sa(
+        db, client, superuser_token_headers, UserRole.USER
+    )
+    mock_get_service.return_value = MagicMock()
+    mock_list_subfolders.return_value = MOCK_SUBFOLDERS
+
+    r = client.get(
+        f"{settings.API_V1_STR}/drive/folders/folder1/subfolders", headers=headers
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data["folders"]) == 2
+    assert data["folders"][0]["id"] == "sf1"
+    assert data["folders"][0]["name"] == "Sub A"
+
+
+@patch("app.api.routes.drive.get_drive_service")
+@patch("app.api.routes.drive.list_subfolders")
+def test_list_subfolders_returns_empty_list(
+    mock_list_subfolders: MagicMock,
+    mock_get_service: MagicMock,
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    _, _, headers = _create_user_with_sa(
+        db, client, superuser_token_headers, UserRole.USER
+    )
+    mock_get_service.return_value = MagicMock()
+    mock_list_subfolders.return_value = []
+
+    r = client.get(
+        f"{settings.API_V1_STR}/drive/folders/folder1/subfolders", headers=headers
+    )
+    assert r.status_code == 200
+    assert r.json()["folders"] == []
+
+
+def test_list_subfolders_no_sa_returns_404(
+    client: TestClient,
+    db: Session,
+) -> None:
+    email = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=email, password=password, role=UserRole.USER)
+    crud.create_user(session=db, user_create=user_in)
+    r = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={"username": email, "password": password},
+    )
+    headers = {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+    r = client.get(
+        f"{settings.API_V1_STR}/drive/folders/folder1/subfolders", headers=headers
+    )
+    assert r.status_code == 404
+
+
+@patch("app.api.routes.drive.get_drive_service")
+@patch("app.api.routes.drive.list_subfolders")
+def test_list_subfolders_drive_error_propagates(
+    mock_list_subfolders: MagicMock,
+    mock_get_service: MagicMock,
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    _, _, headers = _create_user_with_sa(
+        db, client, superuser_token_headers, UserRole.USER
+    )
+    mock_get_service.return_value = MagicMock()
+    mock_list_subfolders.side_effect = DriveError("Folder not found", status_code=404)
+
+    r = client.get(
+        f"{settings.API_V1_STR}/drive/folders/nonexistent/subfolders", headers=headers
+    )
+    assert r.status_code == 404
+    assert "Folder not found" in r.json()["detail"]
+
+
+# --- Search ---
+
+
+@patch("app.api.routes.drive.get_drive_service")
+@patch("app.api.routes.drive.search_folders")
+def test_search_folders_returns_results(
+    mock_search: MagicMock,
+    mock_get_service: MagicMock,
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    _, _, headers = _create_user_with_sa(
+        db, client, superuser_token_headers, UserRole.USER
+    )
+    mock_get_service.return_value = MagicMock()
+    mock_search.return_value = MOCK_SEARCH_RESULTS
+
+    r = client.get(
+        f"{settings.API_V1_STR}/drive/folders/search?q=inv", headers=headers
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert len(data["results"]) == 2
+    assert data["results"][0]["name"] == "Invoices"
+    assert data["results"][0]["parent_name"] == "Root"
+    assert data["results"][1]["parent_name"] is None
+
+
+@patch("app.api.routes.drive.get_drive_service")
+@patch("app.api.routes.drive.search_folders")
+def test_search_folders_returns_empty_list(
+    mock_search: MagicMock,
+    mock_get_service: MagicMock,
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    _, _, headers = _create_user_with_sa(
+        db, client, superuser_token_headers, UserRole.USER
+    )
+    mock_get_service.return_value = MagicMock()
+    mock_search.return_value = []
+
+    r = client.get(
+        f"{settings.API_V1_STR}/drive/folders/search?q=xyz", headers=headers
+    )
+    assert r.status_code == 200
+    assert r.json()["results"] == []
+
+
+def test_search_folders_missing_query_returns_422(
+    client: TestClient,
+    superuser_token_headers: dict[str, str],
+    db: Session,
+) -> None:
+    _, _, headers = _create_user_with_sa(
+        db, client, superuser_token_headers, UserRole.USER
+    )
+    r = client.get(
+        f"{settings.API_V1_STR}/drive/folders/search", headers=headers
+    )
+    assert r.status_code == 422
+
+
+def test_search_folders_no_sa_returns_404(
+    client: TestClient,
+    db: Session,
+) -> None:
+    email = random_email()
+    password = random_lower_string()
+    user_in = UserCreate(email=email, password=password, role=UserRole.USER)
+    crud.create_user(session=db, user_create=user_in)
+    r = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={"username": email, "password": password},
+    )
+    headers = {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+    r = client.get(
+        f"{settings.API_V1_STR}/drive/folders/search?q=test", headers=headers
+    )
+    assert r.status_code == 404

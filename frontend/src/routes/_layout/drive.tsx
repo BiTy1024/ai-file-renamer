@@ -1,10 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, Link } from "@tanstack/react-router"
-import { Folder, Info } from "lucide-react"
-
-import { DriveService, ServiceAccountsService } from "@/client"
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Skeleton } from "@/components/ui/skeleton"
+import { createFileRoute, useNavigate } from "@tanstack/react-router"
+import { Info } from "lucide-react"
+import { useState } from "react"
+import { ServiceAccountsService } from "@/client"
+import { FolderSearch } from "@/components/Drive/FolderSearch"
+import { FolderTree } from "@/components/Drive/FolderTree"
+import { Card, CardContent } from "@/components/ui/card"
 import useAuth from "@/hooks/useAuth"
 
 export const Route = createFileRoute("/_layout/drive")({
@@ -40,76 +41,15 @@ function ServiceAccountPanel() {
   )
 }
 
-function FolderGrid() {
-  const {
-    data: folderData,
-    isLoading,
-    error,
-  } = useQuery({
-    queryKey: ["drive-folders"],
-    queryFn: () => DriveService.readFolders(),
-    retry: false,
-  })
-
-  if (isLoading) {
-    return (
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {Array.from({ length: 6 }).map((_, i) => (
-          <Skeleton key={`skeleton-${i}`} className="h-24 rounded-lg" />
-        ))}
-      </div>
-    )
-  }
-
-  if (error) {
-    const message =
-      (error as { body?: { detail?: string } })?.body?.detail ??
-      "Failed to load folders"
-    return (
-      <Card>
-        <CardContent className="py-8 text-center">
-          <p className="text-muted-foreground">{message}</p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (!folderData?.folders?.length) {
-    return (
-      <Card>
-        <CardContent className="py-8 text-center">
-          <Folder className="text-muted-foreground mx-auto mb-3 size-10" />
-          <p className="text-muted-foreground">
-            No folders shared with your service account yet.
-          </p>
-        </CardContent>
-      </Card>
-    )
-  }
-
-  return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-      {folderData.folders.map((folder) => (
-        <Link
-          key={folder.id}
-          to="/drive-folder/$folderId"
-          params={{ folderId: folder.id }}
-        >
-          <Card className="hover:border-primary/50 cursor-pointer transition-colors">
-            <CardHeader className="pb-2">
-              <CardTitle className="flex items-center gap-2 text-base">
-                <Folder className="text-primary size-5" />
-                {folder.name}
-              </CardTitle>
-            </CardHeader>
-          </Card>
-        </Link>
-      ))}
-    </div>
-  )
-}
-
 function DrivePage() {
+  const navigate = useNavigate()
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null)
+
+  function handleFolderSelect(folderId: string) {
+    setSelectedFolderId(folderId)
+    navigate({ to: "/drive-folder/$folderId", params: { folderId } })
+  }
+
   return (
     <div className="flex flex-col gap-6">
       <div>
@@ -119,7 +59,11 @@ function DrivePage() {
         </p>
       </div>
       <ServiceAccountPanel />
-      <FolderGrid />
+      <FolderSearch onSelect={handleFolderSelect} />
+      <FolderTree
+        selectedFolderId={selectedFolderId}
+        onSelect={handleFolderSelect}
+      />
     </div>
   )
 }

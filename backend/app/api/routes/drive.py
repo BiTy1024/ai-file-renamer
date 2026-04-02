@@ -1,6 +1,6 @@
 from typing import Any
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 
 from app.api.deps import CurrentUserSA
 from app.models import (
@@ -8,6 +8,8 @@ from app.models import (
     DriveFileList,
     DriveFolder,
     DriveFolderList,
+    DriveFolderSearchResult,
+    DriveFolderSearchResultList,
 )
 from app.services.google_drive import (
     DriveError,
@@ -15,6 +17,8 @@ from app.services.google_drive import (
     get_file_metadata,
     list_files,
     list_folders,
+    list_subfolders,
+    search_folders,
 )
 
 router = APIRouter(prefix="/drive", tags=["drive"])
@@ -26,6 +30,44 @@ def read_folders(sa: CurrentUserSA) -> Any:
     try:
         service = get_drive_service(sa)
         raw_folders = list_folders(service)
+    except DriveError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    folders = [
+        DriveFolder(
+            id=f["id"],
+            name=f["name"],
+            created_time=f.get("createdTime"),
+        )
+        for f in raw_folders
+    ]
+    return DriveFolderList(folders=folders)
+
+
+@router.get("/folders/search", response_model=DriveFolderSearchResultList)
+def search_drive_folders(sa: CurrentUserSA, q: str = Query(min_length=1)) -> Any:
+    """Search folders by name across all folders accessible by the service account."""
+    try:
+        service = get_drive_service(sa)
+        raw = search_folders(service, q)
+    except DriveError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.message)
+    results = [
+        DriveFolderSearchResult(
+            id=r["id"],
+            name=r["name"],
+            parent_name=r.get("parent_name"),
+        )
+        for r in raw
+    ]
+    return DriveFolderSearchResultList(results=results)
+
+
+@router.get("/folders/{folder_id}/subfolders", response_model=DriveFolderList)
+def read_folder_subfolders(folder_id: str, sa: CurrentUserSA) -> Any:
+    """List subfolders inside a given folder."""
+    try:
+        service = get_drive_service(sa)
+        raw_folders = list_subfolders(service, folder_id)
     except DriveError as e:
         raise HTTPException(status_code=e.status_code, detail=e.message)
     folders = [

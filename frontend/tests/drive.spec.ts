@@ -16,6 +16,11 @@ test("Drive link is visible in sidebar", async ({ page }) => {
   await expect(page.getByRole("link", { name: "Drive" })).toBeVisible()
 })
 
+test("Drive page shows search input", async ({ page }) => {
+  await page.goto("/drive")
+  await expect(page.getByPlaceholder("Search folders...")).toBeVisible()
+})
+
 test.describe("Drive access control", () => {
   test.use({ storageState: { cookies: [], origins: [] } })
 
@@ -34,5 +39,64 @@ test.describe("Drive access control", () => {
 
     await page.goto("/drive")
     await expect(page.getByRole("heading", { name: "Drive" })).toBeVisible()
+  })
+
+  test("Drive page shows empty state when no service account assigned", async ({
+    page,
+  }) => {
+    const email = randomEmail()
+    const password = randomPassword()
+    await createUser({ email, password })
+    await logInUser(page, email, password)
+
+    await page.goto("/drive")
+    await expect(
+      page.getByText("No folders shared with your service account yet."),
+    ).toBeVisible()
+  })
+})
+
+// These tests require a real service account with folders configured.
+// They are skipped in CI unless GOOGLE_SA_CREDENTIALS_JSON is available.
+test.describe("Drive folder tree (requires SA with folders)", () => {
+  test.fixme(
+    !process.env.GOOGLE_SA_CREDENTIALS_JSON,
+    "Requires GOOGLE_SA_CREDENTIALS_JSON",
+  )
+
+  test("Drive page shows folder tree with root folders", async ({ page }) => {
+    await page.goto("/drive")
+    await expect(page.locator('[aria-label="Expand"]').first()).toBeVisible()
+  })
+
+  test("Folder tree expands subfolders on chevron click", async ({ page }) => {
+    await page.goto("/drive")
+    const firstChevron = page.locator('[aria-label="Expand"]').first()
+    await firstChevron.click()
+    // After expanding, chevron should become "Collapse"
+    await expect(page.locator('[aria-label="Collapse"]').first()).toBeVisible()
+  })
+
+  test("Clicking folder in tree navigates to folder page", async ({ page }) => {
+    await page.goto("/drive")
+    const firstFolder = page
+      .getByRole("button")
+      .filter({ hasText: /\w/ })
+      .first()
+    await firstFolder.click()
+    await expect(page).toHaveURL(/\/drive-folder\//)
+  })
+
+  test("Search returns results and clears on selection", async ({ page }) => {
+    await page.goto("/drive")
+    await page.getByPlaceholder("Search folders...").fill("a")
+    // Wait for debounce — query fires at ≥2 chars
+    await page.getByPlaceholder("Search folders...").fill("in")
+    await page.waitForTimeout(400)
+    // Results container should appear
+    const results = page.locator("button").filter({ hasText: /\// }).first()
+    await results.click()
+    await expect(page).toHaveURL(/\/drive-folder\//)
+    await expect(page.getByPlaceholder("Search folders...")).toHaveValue("")
   })
 })

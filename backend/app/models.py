@@ -154,6 +154,16 @@ class DriveFolderList(SQLModel):
     folders: list[DriveFolder]
 
 
+class DriveFolderSearchResult(SQLModel):
+    id: str
+    name: str
+    parent_name: str | None = None
+
+
+class DriveFolderSearchResultList(SQLModel):
+    results: list[DriveFolderSearchResult]
+
+
 class DriveFile(SQLModel):
     id: str
     name: str
