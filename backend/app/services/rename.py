@@ -31,6 +31,23 @@ class RenamePreviewItem:
     error: str | None = None
 
 
+def _deduplicate_names(
+    previews: list["RenamePreviewItem"],
+) -> list["RenamePreviewItem"]:
+    """Add numeric suffix to duplicate proposed names."""
+    seen: dict[str, int] = {}
+    for preview in previews:
+        name = preview.proposed_name
+        if name in seen:
+            seen[name] += 1
+            ext = get_file_extension(name)
+            base = name[: -len(ext)] if ext else name
+            preview.proposed_name = f"{base}_{seen[name]}{ext}"
+        else:
+            seen[name] = 0
+    return previews
+
+
 @dataclass
 class RenameResultItem:
     file_id: str
@@ -130,7 +147,7 @@ def preview_rename(
                 )
             )
 
-    return previews
+    return _deduplicate_names(previews)
 
 
 def execute_rename(
