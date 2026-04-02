@@ -396,6 +396,8 @@ export type UsersUpdatePasswordMeData = {
 
 export type UsersUpdatePasswordMeResponse = (Message);
 
+export type UsersReadUserMeUsageResponse = (UsageSummary);
+
 export type UsersReadUserByIdData = {
     userId: string;
 };

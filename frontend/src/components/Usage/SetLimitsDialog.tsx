@@ -40,21 +40,18 @@ export function SetLimitsDialog({
   const [tokensPerMonth, setTokensPerMonth] = useState(
     currentTokensPerMonth?.toString() ?? "",
   )
+  const [validationError, setValidationError] = useState<string | null>(null)
   const queryClient = useQueryClient()
   const { showSuccessToast, showErrorToast } = useCustomToast()
 
   const mutation = useMutation({
-    mutationFn: () =>
+    mutationFn: (payload: {
+      max_requests_per_day: number | null
+      max_tokens_per_month: number | null
+    }) =>
       UsersService.updateUserLimits({
         userId,
-        requestBody: {
-          max_requests_per_day: requestsPerDay
-            ? Number.parseInt(requestsPerDay, 10)
-            : null,
-          max_tokens_per_month: tokensPerMonth
-            ? Number.parseInt(tokensPerMonth, 10)
-            : null,
-        },
+        requestBody: payload,
       }),
     onSuccess: () => {
       showSuccessToast("Limits updated successfully")
@@ -65,6 +62,31 @@ export function SetLimitsDialog({
       queryClient.invalidateQueries({ queryKey: ["user-usage"] })
     },
   })
+
+  function handleSave() {
+    const parsedRequests = requestsPerDay.trim()
+      ? Number.parseInt(requestsPerDay, 10)
+      : null
+    const parsedTokens = tokensPerMonth.trim()
+      ? Number.parseInt(tokensPerMonth, 10)
+      : null
+
+    if (
+      (parsedRequests !== null &&
+        (!Number.isInteger(parsedRequests) || parsedRequests < 1)) ||
+      (parsedTokens !== null &&
+        (!Number.isInteger(parsedTokens) || parsedTokens < 1))
+    ) {
+      setValidationError("Limits must be positive integers.")
+      return
+    }
+
+    setValidationError(null)
+    mutation.mutate({
+      max_requests_per_day: parsedRequests,
+      max_tokens_per_month: parsedTokens,
+    })
+  }
 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
@@ -87,7 +109,11 @@ export function SetLimitsDialog({
               type="number"
               placeholder="Unlimited"
               value={requestsPerDay}
-              onChange={(e) => setRequestsPerDay(e.target.value)}
+              min={1}
+              onChange={(e) => {
+                setRequestsPerDay(e.target.value)
+                setValidationError(null)
+              }}
             />
           </div>
           <div className="grid gap-2">
@@ -96,9 +122,16 @@ export function SetLimitsDialog({
               type="number"
               placeholder="Unlimited"
               value={tokensPerMonth}
-              onChange={(e) => setTokensPerMonth(e.target.value)}
+              min={1}
+              onChange={(e) => {
+                setTokensPerMonth(e.target.value)
+                setValidationError(null)
+              }}
             />
           </div>
+          {validationError && (
+            <p className="text-destructive text-sm">{validationError}</p>
+          )}
         </div>
         <DialogFooter>
           <DialogClose asChild>
@@ -106,10 +139,7 @@ export function SetLimitsDialog({
               Cancel
             </Button>
           </DialogClose>
-          <LoadingButton
-            loading={mutation.isPending}
-            onClick={() => mutation.mutate()}
-          >
+          <LoadingButton loading={mutation.isPending} onClick={handleSave}>
             Save
           </LoadingButton>
         </DialogFooter>

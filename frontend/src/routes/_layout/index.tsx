@@ -1,7 +1,8 @@
 import { useQuery } from "@tanstack/react-query"
 import { createFileRoute } from "@tanstack/react-router"
 
-import { ServiceAccountsService } from "@/client"
+import { ServiceAccountsService, UsersService } from "@/client"
+import { UsageBar } from "@/components/Usage/UsageBar"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import useAuth from "@/hooks/useAuth"
 
@@ -74,6 +75,36 @@ function ServiceAccountInfo() {
   )
 }
 
+function MyUsageInfo() {
+  const { data: usage, isLoading } = useQuery({
+    queryKey: ["my-usage"],
+    queryFn: () => UsersService.readUserMeUsage(),
+    retry: false,
+  })
+
+  if (isLoading || !usage) return null
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">My Usage</CardTitle>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <UsageBar
+          current={usage.requests_today}
+          limit={usage.limit?.max_requests_per_day ?? null}
+          label="requests / day"
+        />
+        <UsageBar
+          current={usage.tokens_this_month}
+          limit={usage.limit?.max_tokens_per_month ?? null}
+          label="tokens / month"
+        />
+      </CardContent>
+    </Card>
+  )
+}
+
 function Dashboard() {
   const { user: currentUser } = useAuth()
 
@@ -85,7 +116,10 @@ function Dashboard() {
         </h1>
         <p className="text-muted-foreground">Welcome back!</p>
       </div>
-      <ServiceAccountInfo />
+      <div className="grid gap-6 md:grid-cols-2">
+        <ServiceAccountInfo />
+        <MyUsageInfo />
+      </div>
     </div>
   )
 }
