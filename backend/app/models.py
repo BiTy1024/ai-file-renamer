@@ -201,13 +201,13 @@ class UserLimit(SQLModel, table=True):
 
 
 class UserLimitPublic(SQLModel):
-    max_requests_per_day: int | None = None
-    max_tokens_per_month: int | None = None
+    max_requests_per_day: int | None = Field(default=None, ge=1)
+    max_tokens_per_month: int | None = Field(default=None, ge=1)
 
 
 class UserLimitUpdate(SQLModel):
-    max_requests_per_day: int | None = None
-    max_tokens_per_month: int | None = None
+    max_requests_per_day: int | None = Field(default=None, ge=1)
+    max_tokens_per_month: int | None = Field(default=None, ge=1)
 
 
 class UsageSummary(SQLModel):

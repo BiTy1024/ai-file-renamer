@@ -36,4 +36,13 @@ test.describe("Usage access control", () => {
     ).not.toBeVisible()
     await expect(page).not.toHaveURL(/\/usage/)
   })
+
+  test("Normal user sees My Usage card on home page", async ({ page }) => {
+    const email = randomEmail()
+    const password = randomPassword()
+    await createUser({ email, password })
+    await logInUser(page, email, password)
+
+    await expect(page.getByRole("heading", { name: "My Usage" })).toBeVisible()
+  })
 })

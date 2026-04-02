@@ -8,7 +8,7 @@ interface UsageBarProps {
 }
 
 export function UsageBar({ current, limit, label }: UsageBarProps) {
-  if (!limit) {
+  if (limit === null) {
     return (
       <div className="flex items-center gap-2">
         <span className="text-muted-foreground text-sm">{current}</span>

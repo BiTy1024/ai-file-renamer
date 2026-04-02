@@ -28,9 +28,8 @@ from app.models import (
     UserUpdateMe,
 )
 from app.services.usage import (
+    build_usage_summary,
     get_user_limit,
-    get_user_requests_today,
-    get_user_tokens_this_month,
 )
 from app.utils import generate_new_account_email, send_email
 
@@ -141,15 +140,7 @@ def read_user_me_usage(session: SessionDep, current_user: CurrentUser) -> Any:
     """
     Get own usage statistics.
     """
-    requests_today = get_user_requests_today(session, current_user.id)
-    tokens_month = get_user_tokens_this_month(session, current_user.id)
-    limit = get_user_limit(session, current_user.id)
-    limit_public = UserLimitPublic.model_validate(limit) if limit else None
-    return UsageSummary(
-        requests_today=requests_today,
-        tokens_this_month=tokens_month,
-        limit=limit_public,
-    )
+    return build_usage_summary(session, current_user.id)
 
 
 @router.delete("/me", response_model=Message)
@@ -282,12 +273,4 @@ def update_user_limits(
 )
 def read_user_usage(session: SessionDep, user_id: uuid.UUID) -> Any:
     """Get usage summary for a user (admin only)."""
-    requests_today = get_user_requests_today(session, user_id)
-    tokens_month = get_user_tokens_this_month(session, user_id)
-    limit = get_user_limit(session, user_id)
-    limit_public = UserLimitPublic.model_validate(limit) if limit else None
-    return UsageSummary(
-        requests_today=requests_today,
-        tokens_this_month=tokens_month,
-        limit=limit_public,
-    )
+    return build_usage_summary(session, user_id)

@@ -513,3 +513,8 @@ def test_read_own_usage_normal_user(
     data = r.json()
     assert data["requests_today"] >= 0
     assert data["tokens_this_month"] >= 0
+
+
+def test_read_own_usage_unauthenticated(client: TestClient) -> None:
+    r = client.get(f"{settings.API_V1_STR}/users/me/usage")
+    assert r.status_code == 401

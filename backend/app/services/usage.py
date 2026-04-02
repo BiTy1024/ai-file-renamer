@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 
 from sqlmodel import Session, func, select
 
-from app.models import UsageRecord, UserLimit
+from app.models import UsageRecord, UsageSummary, UserLimit, UserLimitPublic
 
 
 class RateLimitExceeded(Exception):
@@ -63,6 +63,18 @@ def get_user_tokens_this_month(session: Session, user_id: uuid.UUID) -> int:
 def get_user_limit(session: Session, user_id: uuid.UUID) -> UserLimit | None:
     statement = select(UserLimit).where(UserLimit.user_id == user_id)
     return session.exec(statement).first()
+
+
+def build_usage_summary(session: Session, user_id: uuid.UUID) -> UsageSummary:
+    requests_today = get_user_requests_today(session, user_id)
+    tokens_month = get_user_tokens_this_month(session, user_id)
+    limit = get_user_limit(session, user_id)
+    limit_public = UserLimitPublic.model_validate(limit) if limit else None
+    return UsageSummary(
+        requests_today=requests_today,
+        tokens_this_month=tokens_month,
+        limit=limit_public,
+    )
 
 
 def check_rate_limit(session: Session, user_id: uuid.UUID) -> None:
