@@ -22,5 +22,5 @@ api_router.include_router(rename.router)
 api_router.include_router(presets.router)
 
 
-if settings.ENVIRONMENT == "local":
+if settings.ENVIRONMENT in ("local", "test"):
     api_router.include_router(private.router)

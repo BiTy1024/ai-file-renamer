@@ -3,6 +3,6 @@
 set -e
 set -x
 
-coverage run -m pytest tests/
+ENVIRONMENT=test coverage run -m pytest tests/ --ignore=tests/integration "$@"
 coverage report
 coverage html --title "${@-coverage}"

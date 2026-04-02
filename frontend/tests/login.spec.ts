@@ -106,11 +106,38 @@ test("Logged-out user cannot access protected routes", async ({ page }) => {
   await page.waitForURL("/login")
 })
 
-test("Redirects to /login when token is wrong", async ({ page }) => {
-  await page.goto("/settings")
-  await page.evaluate(() => {
-    localStorage.setItem("access_token", "invalid_token")
-  })
+test("session cookie is set after login", async ({ page }) => {
+  await page.goto("/login")
+
+  await fillForm(page, firstSuperuser, firstSuperuserPassword)
+  await page.getByRole("button", { name: "Log In" }).click()
+  await page.waitForURL("/")
+
+  const cookies = await page.context().cookies()
+  const session = cookies.find((c) => c.name === "session")
+  expect(session).toBeDefined()
+  expect(session?.value).toBe("1")
+  // session cookie must NOT be httpOnly so JS can read it
+  expect(session?.httpOnly).toBe(false)
+})
+
+test("session cookie is cleared after logout", async ({ page }) => {
+  await page.goto("/login")
+
+  await fillForm(page, firstSuperuser, firstSuperuserPassword)
+  await page.getByRole("button", { name: "Log In" }).click()
+  await page.waitForURL("/")
+
+  await page.getByTestId("user-menu").click()
+  await page.getByRole("menuitem", { name: "Log out" }).click()
+  await page.waitForURL("/login")
+
+  const cookies = await page.context().cookies()
+  const session = cookies.find((c) => c.name === "session")
+  expect(session).toBeUndefined()
+})
+
+test("Unauthenticated user is redirected to /login", async ({ page }) => {
   await page.goto("/settings")
   await page.waitForURL("/login")
   await expect(page).toHaveURL("/login")

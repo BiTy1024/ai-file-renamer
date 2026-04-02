@@ -7,7 +7,7 @@ from sqlmodel import Session
 from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.crud import create_user
-from app.models import User, UserCreate
+from app.models import RefreshToken, User, UserCreate
 from app.utils import generate_password_reset_token
 from tests.utils.user import user_authentication_headers
 from tests.utils.utils import random_email, random_lower_string
@@ -161,6 +161,111 @@ def test_login_with_bcrypt_password_upgrades_to_argon2(
     assert verified
     # Should not need another update since it's already argon2
     assert updated_hash is None
+
+
+def test_login_sets_httponly_cookies(client: TestClient) -> None:
+    """Login must set httpOnly access_token and refresh_token cookies."""
+    login_data = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": settings.FIRST_SUPERUSER_PASSWORD,
+    }
+    r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    assert r.status_code == 200
+
+    cookies = r.cookies
+    assert "access_token" in cookies
+    assert "refresh_token" in cookies
+    assert "session" in cookies
+
+    # FastAPI TestClient exposes raw Set-Cookie headers for attribute inspection
+    raw_headers = r.headers.get_list("set-cookie")
+    at_header = next(h for h in raw_headers if "access_token=" in h)
+    rt_header = next(h for h in raw_headers if "refresh_token=" in h)
+    session_header = next(h for h in raw_headers if "session=" in h)
+
+    assert "HttpOnly" in at_header
+    assert "HttpOnly" in rt_header
+    # session cookie must NOT be httpOnly (JS needs to read it)
+    assert "HttpOnly" not in session_header
+
+
+def test_access_token_via_cookie(client: TestClient) -> None:
+    """Endpoints accept the access token from the cookie (no Authorization header)."""
+    login_data = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": settings.FIRST_SUPERUSER_PASSWORD,
+    }
+    login_r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    assert login_r.status_code == 200
+
+    # Use cookie jar from login response — no explicit header needed
+    r = client.post(f"{settings.API_V1_STR}/login/test-token")
+    assert r.status_code == 200
+    assert "email" in r.json()
+
+
+def test_refresh_token_rotation(client: TestClient) -> None:
+    """POST /login/refresh issues a new access token and rotates the refresh token."""
+    login_data = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": settings.FIRST_SUPERUSER_PASSWORD,
+    }
+    login_r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    assert login_r.status_code == 200
+    old_refresh = login_r.cookies.get("refresh_token")
+
+    refresh_r = client.post(f"{settings.API_V1_STR}/login/refresh")
+    assert refresh_r.status_code == 200
+    assert "access_token" in refresh_r.json()
+
+    new_refresh = refresh_r.cookies.get("refresh_token")
+    # Token must have been rotated
+    assert new_refresh is not None
+    assert new_refresh != old_refresh
+
+
+def test_refresh_without_cookie_returns_401(client: TestClient) -> None:
+    """POST /login/refresh without a cookie must return 401."""
+    # Fresh client with no cookies
+    with TestClient(client.app) as fresh:
+        r = fresh.post(f"{settings.API_V1_STR}/login/refresh")
+    assert r.status_code == 401
+
+
+def test_logout_clears_cookies_and_invalidates_refresh(
+    client: TestClient, db: Session
+) -> None:
+    """Logout deletes the DB refresh token record and clears all auth cookies."""
+    login_data = {
+        "username": settings.FIRST_SUPERUSER,
+        "password": settings.FIRST_SUPERUSER_PASSWORD,
+    }
+    login_r = client.post(f"{settings.API_V1_STR}/login/access-token", data=login_data)
+    assert login_r.status_code == 200
+
+    # Grab the superuser's ID to scope the DB assertion
+    from sqlmodel import select
+
+    from app.models import User
+
+    superuser = db.exec(
+        select(User).where(User.email == settings.FIRST_SUPERUSER)
+    ).first()
+    assert superuser is not None
+
+    logout_r = client.post(f"{settings.API_V1_STR}/login/logout")
+    assert logout_r.status_code == 200
+
+    # After logout the refresh token for this user must be gone
+    db.expire_all()  # force re-read from DB
+    record = db.exec(
+        select(RefreshToken).where(RefreshToken.user_id == superuser.id)
+    ).first()
+    assert record is None
+
+    # Attempting to refresh after logout must fail
+    refresh_r = client.post(f"{settings.API_V1_STR}/login/refresh")
+    assert refresh_r.status_code == 401
 
 
 def test_login_with_argon2_password_keeps_hash(client: TestClient, db: Session) -> None:

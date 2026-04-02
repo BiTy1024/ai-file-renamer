@@ -7,21 +7,24 @@ import {
 import { createRouter, RouterProvider } from "@tanstack/react-router"
 import { StrictMode } from "react"
 import ReactDOM from "react-dom/client"
-import { ApiError, OpenAPI } from "./client"
+import { ApiError, LoginService, OpenAPI } from "./client"
 import { ThemeProvider } from "./components/theme-provider"
 import { Toaster } from "./components/ui/sonner"
 import "./index.css"
 import { routeTree } from "./routeTree.gen"
 
 OpenAPI.BASE = import.meta.env.VITE_API_URL
-OpenAPI.TOKEN = async () => {
-  return localStorage.getItem("access_token") || ""
-}
+OpenAPI.WITH_CREDENTIALS = true
 
-const handleApiError = (error: Error) => {
-  if (error instanceof ApiError && [401, 403].includes(error.status)) {
-    localStorage.removeItem("access_token")
-    window.location.href = "/login"
+const handleApiError = async (error: Error) => {
+  if (error instanceof ApiError && error.status === 401) {
+    // Attempt silent token refresh before giving up
+    try {
+      await LoginService.refreshAccessToken()
+      window.location.reload()
+    } catch {
+      window.location.href = "/login"
+    }
   }
 }
 const queryClient = new QueryClient({

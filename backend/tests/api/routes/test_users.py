@@ -516,5 +516,7 @@ def test_read_own_usage_normal_user(
 
 
 def test_read_own_usage_unauthenticated(client: TestClient) -> None:
-    r = client.get(f"{settings.API_V1_STR}/users/me/usage")
+    # Use a fresh client to ensure no session cookies from other tests interfere
+    with TestClient(client.app) as fresh:
+        r = fresh.get(f"{settings.API_V1_STR}/users/me/usage")
     assert r.status_code == 401
