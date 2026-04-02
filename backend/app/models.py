@@ -93,6 +93,22 @@ class NewPassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
+# --- Refresh token model ---
+
+
+class RefreshToken(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(
+        foreign_key="user.id", nullable=False, index=True, ondelete="CASCADE"
+    )
+    token_hash: str = Field(max_length=64, unique=True)  # sha256 hex digest
+    expires_at: datetime = Field(sa_type=DateTime(timezone=True))  # type: ignore
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
 # --- Service Account models ---
 
 

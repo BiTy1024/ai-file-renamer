@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { DriveReadFoldersResponse, DriveSearchDriveFoldersData, DriveSearchDriveFoldersResponse, DriveReadFolderSubfoldersData, DriveReadFolderSubfoldersResponse, DriveReadFolderFilesData, DriveReadFolderFilesResponse, DriveReadFileMetadataData, DriveReadFileMetadataResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PresetsReadPresetsData, PresetsReadPresetsResponse, PresetsCreatePresetData, PresetsCreatePresetResponse, PresetsUpdatePresetData, PresetsUpdatePresetResponse, PresetsDeletePresetData, PresetsDeletePresetResponse, PrivateCreateUserData, PrivateCreateUserResponse, RenameRenamePreviewData, RenameRenamePreviewResponse, RenameRenameConfirmData, RenameRenameConfirmResponse, RenameReadRenameHistoryData, RenameReadRenameHistoryResponse, ServiceAccountsReadServiceAccountsData, ServiceAccountsReadServiceAccountsResponse, ServiceAccountsCreateServiceAccountData, ServiceAccountsCreateServiceAccountResponse, ServiceAccountsReadOwnServiceAccountResponse, ServiceAccountsReadServiceAccountData, ServiceAccountsReadServiceAccountResponse, ServiceAccountsUpdateServiceAccountData, ServiceAccountsUpdateServiceAccountResponse, ServiceAccountsDeleteServiceAccountData, ServiceAccountsDeleteServiceAccountResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersReadUserMeUsageResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UsersReadUserLimitsData, UsersReadUserLimitsResponse, UsersUpdateUserLimitsData, UsersUpdateUserLimitsResponse, UsersReadUserUsageData, UsersReadUserUsageResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { DriveReadFoldersResponse, DriveSearchDriveFoldersData, DriveSearchDriveFoldersResponse, DriveReadFolderSubfoldersData, DriveReadFolderSubfoldersResponse, DriveReadFolderFilesData, DriveReadFolderFilesResponse, DriveReadFileMetadataData, DriveReadFileMetadataResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginRefreshAccessTokenResponse, LoginLogoutResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PresetsReadPresetsData, PresetsReadPresetsResponse, PresetsCreatePresetData, PresetsCreatePresetResponse, PresetsUpdatePresetData, PresetsUpdatePresetResponse, PresetsDeletePresetData, PresetsDeletePresetResponse, PrivateCreateUserData, PrivateCreateUserResponse, RenameRenamePreviewData, RenameRenamePreviewResponse, RenameRenameConfirmData, RenameRenameConfirmResponse, RenameReadRenameHistoryData, RenameReadRenameHistoryResponse, ServiceAccountsReadServiceAccountsData, ServiceAccountsReadServiceAccountsResponse, ServiceAccountsCreateServiceAccountData, ServiceAccountsCreateServiceAccountResponse, ServiceAccountsReadOwnServiceAccountResponse, ServiceAccountsReadServiceAccountData, ServiceAccountsReadServiceAccountResponse, ServiceAccountsUpdateServiceAccountData, ServiceAccountsUpdateServiceAccountResponse, ServiceAccountsDeleteServiceAccountData, ServiceAccountsDeleteServiceAccountResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersReadUserMeUsageResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UsersReadUserLimitsData, UsersReadUserLimitsResponse, UsersUpdateUserLimitsData, UsersUpdateUserLimitsResponse, UsersReadUserUsageData, UsersReadUserUsageResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class DriveService {
     /**
@@ -107,7 +107,7 @@ export class DriveService {
 export class LoginService {
     /**
      * Login Access Token
-     * OAuth2 compatible token login, get an access token for future requests
+     * OAuth2 compatible token login. Sets httpOnly cookies and returns token JSON.
      * @param data The data for the request.
      * @param data.formData
      * @returns Token Successful Response
@@ -122,6 +122,32 @@ export class LoginService {
             errors: {
                 422: 'Validation Error'
             }
+        });
+    }
+    
+    /**
+     * Refresh Access Token
+     * Issue a new access token using the refresh token cookie (rotates the refresh token).
+     * @returns Token Successful Response
+     * @throws ApiError
+     */
+    public static refreshAccessToken(): CancelablePromise<LoginRefreshAccessTokenResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/login/refresh'
+        });
+    }
+    
+    /**
+     * Logout
+     * Invalidate the refresh token and clear all auth cookies.
+     * @returns Message Successful Response
+     * @throws ApiError
+     */
+    public static logout(): CancelablePromise<LoginLogoutResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/login/logout'
         });
     }
     

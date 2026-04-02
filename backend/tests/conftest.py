@@ -9,6 +9,7 @@ from app.core.db import engine, init_db
 from app.main import app
 from app.models import (
     ConventionPreset,
+    RefreshToken,
     RenameLog,
     ServiceAccount,
     UsageRecord,
@@ -25,6 +26,7 @@ def db() -> Generator[Session, None, None]:
         init_db(session)
         yield session
         for model in (
+            RefreshToken,
             RenameLog,
             UsageRecord,
             UserLimit,
