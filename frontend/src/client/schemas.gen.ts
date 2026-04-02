@@ -420,6 +420,11 @@ export const RenameConfirmItemSchema = {
         new_name: {
             type: 'string',
             title: 'New Name'
+        },
+        original_name: {
+            type: 'string',
+            title: 'Original Name',
+            default: ''
         }
     },
     type: 'object',
@@ -429,6 +434,10 @@ export const RenameConfirmItemSchema = {
 
 export const RenameConfirmRequestSchema = {
     properties: {
+        folder_id: {
+            type: 'string',
+            title: 'Folder Id'
+        },
         renames: {
             items: {
                 '$ref': '#/components/schemas/RenameConfirmItem'
@@ -438,7 +447,7 @@ export const RenameConfirmRequestSchema = {
         }
     },
     type: 'object',
-    required: ['renames'],
+    required: ['folder_id', 'renames'],
     title: 'RenameConfirmRequest'
 } as const;
 
@@ -455,6 +464,67 @@ export const RenameConfirmResponseSchema = {
     type: 'object',
     required: ['results'],
     title: 'RenameConfirmResponse'
+} as const;
+
+export const RenameHistoryResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/RenameLogPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'RenameHistoryResponse'
+} as const;
+
+export const RenameLogPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
+        folder_id: {
+            type: 'string',
+            title: 'Folder Id'
+        },
+        original_name: {
+            type: 'string',
+            title: 'Original Name'
+        },
+        new_name: {
+            type: 'string',
+            title: 'New Name'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'user_id', 'folder_id', 'original_name', 'new_name'],
+    title: 'RenameLogPublic'
 } as const;
 
 export const RenamePreviewSchema = {

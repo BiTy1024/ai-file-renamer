@@ -158,10 +158,11 @@ def test_confirm_renames_files(
         f"{settings.API_V1_STR}/rename/confirm",
         headers=headers,
         json={
+            "folder_id": "test_folder",
             "renames": [
                 {"file_id": "file1", "new_name": "new1.pdf"},
                 {"file_id": "file2", "new_name": "new2.pdf"},
-            ]
+            ],
         },
     )
     assert r.status_code == 200
@@ -190,7 +191,10 @@ def test_confirm_partial(
     r = client.post(
         f"{settings.API_V1_STR}/rename/confirm",
         headers=headers,
-        json={"renames": [{"file_id": "file1", "new_name": "only_this.pdf"}]},
+        json={
+            "folder_id": "test_folder",
+            "renames": [{"file_id": "file1", "new_name": "only_this.pdf"}],
+        },
     )
     assert r.status_code == 200
     assert len(r.json()["results"]) == 1
@@ -218,10 +222,11 @@ def test_confirm_with_failure(
         f"{settings.API_V1_STR}/rename/confirm",
         headers=headers,
         json={
+            "folder_id": "test_folder",
             "renames": [
                 {"file_id": "file1", "new_name": "a.pdf"},
                 {"file_id": "file2", "new_name": "b.pdf"},
-            ]
+            ],
         },
     )
     assert r.status_code == 200
@@ -237,6 +242,9 @@ def test_viewer_cannot_confirm(client: TestClient, db: Session) -> None:
     r = client.post(
         f"{settings.API_V1_STR}/rename/confirm",
         headers=headers,
-        json={"renames": [{"file_id": "file1", "new_name": "nope.pdf"}]},
+        json={
+            "folder_id": "test_folder",
+            "renames": [{"file_id": "file1", "new_name": "nope.pdf"}],
+        },
     )
     assert r.status_code == 403

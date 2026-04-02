@@ -83,14 +83,30 @@ export type PrivateUserCreate = {
 export type RenameConfirmItem = {
     file_id: string;
     new_name: string;
+    original_name?: string;
 };
 
 export type RenameConfirmRequest = {
+    folder_id: string;
     renames: Array<RenameConfirmItem>;
 };
 
 export type RenameConfirmResponse = {
     results: Array<RenameResult>;
+};
+
+export type RenameHistoryResponse = {
+    data: Array<RenameLogPublic>;
+    count: number;
+};
+
+export type RenameLogPublic = {
+    id: string;
+    user_id: string;
+    folder_id: string;
+    original_name: string;
+    new_name: string;
+    created_at?: (string | null);
 };
 
 export type RenamePreview = {
@@ -309,6 +325,13 @@ export type RenameRenameConfirmData = {
 };
 
 export type RenameRenameConfirmResponse = (RenameConfirmResponse);
+
+export type RenameReadRenameHistoryData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type RenameReadRenameHistoryResponse = (RenameHistoryResponse);
 
 export type ServiceAccountsReadServiceAccountsData = {
     limit?: number;

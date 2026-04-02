@@ -23,7 +23,9 @@ import {
 
 interface RenamePreviewProps {
   previews: RenamePreviewType[]
-  onConfirm: (renames: { file_id: string; new_name: string }[]) => void
+  onConfirm: (
+    renames: { file_id: string; new_name: string; original_name: string }[],
+  ) => void
   onCancel: () => void
   isConfirming: boolean
   canConfirm: boolean
@@ -81,6 +83,7 @@ export function RenamePreview({
       .map((p) => ({
         file_id: p.file_id,
         new_name: editedNames[p.file_id] ?? p.proposed_name,
+        original_name: p.original_name,
       }))
     onConfirm(renames)
   }

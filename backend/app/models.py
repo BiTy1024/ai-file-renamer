@@ -240,9 +240,11 @@ class RenamePreviewResponse(SQLModel):
 class RenameConfirmItem(SQLModel):
     file_id: str
     new_name: str
+    original_name: str = ""
 
 
 class RenameConfirmRequest(SQLModel):
+    folder_id: str
     renames: list[RenameConfirmItem]
 
 
@@ -292,4 +294,33 @@ class ConventionPresetPublic(ConventionPresetBase):
 
 class ConventionPresetsPublic(SQLModel):
     data: list[ConventionPresetPublic]
+    count: int
+
+
+# --- Rename history models ---
+
+
+class RenameLog(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False)
+    folder_id: str = Field(max_length=255)
+    original_name: str = Field(max_length=500)
+    new_name: str = Field(max_length=500)
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class RenameLogPublic(SQLModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    folder_id: str
+    original_name: str
+    new_name: str
+    created_at: datetime | None = None
+
+
+class RenameHistoryResponse(SQLModel):
+    data: list[RenameLogPublic]
     count: int

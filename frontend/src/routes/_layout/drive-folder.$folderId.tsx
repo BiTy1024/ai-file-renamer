@@ -172,9 +172,11 @@ function FolderFilesPage() {
   })
 
   const confirmMutation = useMutation({
-    mutationFn: (renames: { file_id: string; new_name: string }[]) =>
+    mutationFn: (
+      renames: { file_id: string; new_name: string; original_name: string }[],
+    ) =>
       RenameService.renameConfirm({
-        requestBody: { renames },
+        requestBody: { folder_id: folderId, renames },
       }),
     onSuccess: (response) => {
       const succeeded = response.results.filter((r) => r.success).length
@@ -207,7 +209,9 @@ function FolderFilesPage() {
     previewMutation.mutate({ convention, instruction, contentType })
   }
 
-  const handleConfirm = (renames: { file_id: string; new_name: string }[]) => {
+  const handleConfirm = (
+    renames: { file_id: string; new_name: string; original_name: string }[],
+  ) => {
     setRenameState("confirming")
     confirmMutation.mutate(renames)
   }
