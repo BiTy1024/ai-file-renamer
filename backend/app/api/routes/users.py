@@ -136,6 +136,22 @@ def read_user_me(current_user: CurrentUser) -> Any:
     return current_user
 
 
+@router.get("/me/usage", response_model=UsageSummary)
+def read_user_me_usage(session: SessionDep, current_user: CurrentUser) -> Any:
+    """
+    Get own usage statistics.
+    """
+    requests_today = get_user_requests_today(session, current_user.id)
+    tokens_month = get_user_tokens_this_month(session, current_user.id)
+    limit = get_user_limit(session, current_user.id)
+    limit_public = UserLimitPublic.model_validate(limit) if limit else None
+    return UsageSummary(
+        requests_today=requests_today,
+        tokens_this_month=tokens_month,
+        limit=limit_public,
+    )
+
+
 @router.delete("/me", response_model=Message)
 def delete_user_me(session: SessionDep, current_user: CurrentUser) -> Any:
     """

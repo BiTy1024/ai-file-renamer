@@ -487,3 +487,29 @@ def test_delete_user_without_privileges(
     )
     assert r.status_code == 403
     assert r.json()["detail"] == "The user doesn't have enough privileges"
+
+
+def test_read_own_usage(
+    client: TestClient, superuser_token_headers: dict[str, str]
+) -> None:
+    r = client.get(
+        f"{settings.API_V1_STR}/users/me/usage",
+        headers=superuser_token_headers,
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert "requests_today" in data
+    assert "tokens_this_month" in data
+
+
+def test_read_own_usage_normal_user(
+    client: TestClient, normal_user_token_headers: dict[str, str]
+) -> None:
+    r = client.get(
+        f"{settings.API_V1_STR}/users/me/usage",
+        headers=normal_user_token_headers,
+    )
+    assert r.status_code == 200
+    data = r.json()
+    assert data["requests_today"] >= 0
+    assert data["tokens_this_month"] >= 0
