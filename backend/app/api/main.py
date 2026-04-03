@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.api.routes import (
+    admin,
     drive,
     login,
     presets,
@@ -20,6 +21,7 @@ api_router.include_router(service_accounts.router)
 api_router.include_router(drive.router)
 api_router.include_router(rename.router)
 api_router.include_router(presets.router)
+api_router.include_router(admin.router)
 
 
 if settings.ENVIRONMENT in ("local", "test"):

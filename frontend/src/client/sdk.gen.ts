@@ -3,7 +3,262 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { DriveReadFoldersResponse, DriveSearchDriveFoldersData, DriveSearchDriveFoldersResponse, DriveReadFolderSubfoldersData, DriveReadFolderSubfoldersResponse, DriveReadFolderFilesData, DriveReadFolderFilesResponse, DriveReadFileMetadataData, DriveReadFileMetadataResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginRefreshAccessTokenResponse, LoginLogoutResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PresetsReadPresetsData, PresetsReadPresetsResponse, PresetsCreatePresetData, PresetsCreatePresetResponse, PresetsUpdatePresetData, PresetsUpdatePresetResponse, PresetsDeletePresetData, PresetsDeletePresetResponse, PrivateCreateUserData, PrivateCreateUserResponse, RenameRenamePreviewData, RenameRenamePreviewResponse, RenameRenameConfirmData, RenameRenameConfirmResponse, RenameReadRenameHistoryData, RenameReadRenameHistoryResponse, ServiceAccountsReadServiceAccountsData, ServiceAccountsReadServiceAccountsResponse, ServiceAccountsCreateServiceAccountData, ServiceAccountsCreateServiceAccountResponse, ServiceAccountsReadOwnServiceAccountResponse, ServiceAccountsReadServiceAccountData, ServiceAccountsReadServiceAccountResponse, ServiceAccountsUpdateServiceAccountData, ServiceAccountsUpdateServiceAccountResponse, ServiceAccountsDeleteServiceAccountData, ServiceAccountsDeleteServiceAccountResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersReadUserMeUsageResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UsersReadUserLimitsData, UsersReadUserLimitsResponse, UsersUpdateUserLimitsData, UsersUpdateUserLimitsResponse, UsersReadUserUsageData, UsersReadUserUsageResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AdminReadUsageSummaryResponse, AdminReadUsageTimeseriesData, AdminReadUsageTimeseriesResponse, AdminReadUserUsageTimeseriesData, AdminReadUserUsageTimeseriesResponse, AdminReadUserUsageSummaryData, AdminReadUserUsageSummaryResponse, AdminReadUserActivityData, AdminReadUserActivityResponse, AdminReadActivityLogData, AdminReadActivityLogResponse, AdminExportActivityData, AdminExportActivityResponse, AdminReadApiKeyStatusResponse, AdminUpdateApiKeyData, AdminUpdateApiKeyResponse, AdminRemoveApiKeyResponse, AdminValidateApiKeyData, AdminValidateApiKeyResponse, AdminReadAdminSettingsResponse, AdminUpdateSettingsData, AdminUpdateSettingsResponse, DriveReadFoldersResponse, DriveSearchDriveFoldersData, DriveSearchDriveFoldersResponse, DriveReadFolderSubfoldersData, DriveReadFolderSubfoldersResponse, DriveReadFolderFilesData, DriveReadFolderFilesResponse, DriveReadFileMetadataData, DriveReadFileMetadataResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginRefreshAccessTokenResponse, LoginLogoutResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PresetsReadPresetsData, PresetsReadPresetsResponse, PresetsCreatePresetData, PresetsCreatePresetResponse, PresetsUpdatePresetData, PresetsUpdatePresetResponse, PresetsDeletePresetData, PresetsDeletePresetResponse, PrivateCreateUserData, PrivateCreateUserResponse, RenameRenamePreviewData, RenameRenamePreviewResponse, RenameRenameConfirmData, RenameRenameConfirmResponse, RenameReadRenameHistoryData, RenameReadRenameHistoryResponse, ServiceAccountsReadServiceAccountsData, ServiceAccountsReadServiceAccountsResponse, ServiceAccountsCreateServiceAccountData, ServiceAccountsCreateServiceAccountResponse, ServiceAccountsReadOwnServiceAccountResponse, ServiceAccountsReadServiceAccountData, ServiceAccountsReadServiceAccountResponse, ServiceAccountsUpdateServiceAccountData, ServiceAccountsUpdateServiceAccountResponse, ServiceAccountsDeleteServiceAccountData, ServiceAccountsDeleteServiceAccountResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersReadUserMeUsageResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UsersReadUserLimitsData, UsersReadUserLimitsResponse, UsersUpdateUserLimitsData, UsersUpdateUserLimitsResponse, UsersReadUserUsageData, UsersReadUserUsageResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+
+export class AdminService {
+    /**
+     * Read Usage Summary
+     * @returns UsageSummaryAdmin Successful Response
+     * @throws ApiError
+     */
+    public static readUsageSummary(): CancelablePromise<AdminReadUsageSummaryResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/usage/summary'
+        });
+    }
+    
+    /**
+     * Read Usage Timeseries
+     * @param data The data for the request.
+     * @param data.period
+     * @param data.range
+     * @returns UsageTimeseriesPoint Successful Response
+     * @throws ApiError
+     */
+    public static readUsageTimeseries(data: AdminReadUsageTimeseriesData = {}): CancelablePromise<AdminReadUsageTimeseriesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/usage/timeseries',
+            query: {
+                period: data.period,
+                range: data.range
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read User Usage Timeseries
+     * @param data The data for the request.
+     * @param data.userId
+     * @param data.period
+     * @param data.range
+     * @returns UsageTimeseriesPoint Successful Response
+     * @throws ApiError
+     */
+    public static readUserUsageTimeseries(data: AdminReadUserUsageTimeseriesData): CancelablePromise<AdminReadUserUsageTimeseriesResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/users/{user_id}/usage/timeseries',
+            path: {
+                user_id: data.userId
+            },
+            query: {
+                period: data.period,
+                range: data.range
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read User Usage Summary
+     * @param data The data for the request.
+     * @param data.userId
+     * @returns UsageSummary Successful Response
+     * @throws ApiError
+     */
+    public static readUserUsageSummary(data: AdminReadUserUsageSummaryData): CancelablePromise<AdminReadUserUsageSummaryResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/users/{user_id}/usage/summary',
+            path: {
+                user_id: data.userId
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read User Activity
+     * @param data The data for the request.
+     * @param data.userId
+     * @param data.skip
+     * @param data.limit
+     * @returns RenameHistoryResponse Successful Response
+     * @throws ApiError
+     */
+    public static readUserActivity(data: AdminReadUserActivityData): CancelablePromise<AdminReadUserActivityResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/users/{user_id}/activity',
+            path: {
+                user_id: data.userId
+            },
+            query: {
+                skip: data.skip,
+                limit: data.limit
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Activity Log
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @param data.userId
+     * @param data.action
+     * @param data.fromDate
+     * @param data.toDate
+     * @returns ActivityLogResponse Successful Response
+     * @throws ApiError
+     */
+    public static readActivityLog(data: AdminReadActivityLogData = {}): CancelablePromise<AdminReadActivityLogResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/activity',
+            query: {
+                skip: data.skip,
+                limit: data.limit,
+                user_id: data.userId,
+                action: data.action,
+                from_date: data.fromDate,
+                to_date: data.toDate
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Export Activity
+     * @param data The data for the request.
+     * @param data.userId
+     * @param data.fromDate
+     * @param data.toDate
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static exportActivity(data: AdminExportActivityData = {}): CancelablePromise<AdminExportActivityResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/activity/export',
+            query: {
+                user_id: data.userId,
+                from_date: data.fromDate,
+                to_date: data.toDate
+            },
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Api Key Status
+     * @returns ApiKeyStatus Successful Response
+     * @throws ApiError
+     */
+    public static readApiKeyStatus(): CancelablePromise<AdminReadApiKeyStatusResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/api-key'
+        });
+    }
+    
+    /**
+     * Update Api Key
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ApiKeyStatus Successful Response
+     * @throws ApiError
+     */
+    public static updateApiKey(data: AdminUpdateApiKeyData): CancelablePromise<AdminUpdateApiKeyResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/admin/api-key',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Remove Api Key
+     * @returns unknown Successful Response
+     * @throws ApiError
+     */
+    public static removeApiKey(): CancelablePromise<AdminRemoveApiKeyResponse> {
+        return __request(OpenAPI, {
+            method: 'DELETE',
+            url: '/api/v1/admin/api-key'
+        });
+    }
+    
+    /**
+     * Validate Api Key
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns ApiKeyValidateResponse Successful Response
+     * @throws ApiError
+     */
+    public static validateApiKey(data: AdminValidateApiKeyData): CancelablePromise<AdminValidateApiKeyResponse> {
+        return __request(OpenAPI, {
+            method: 'POST',
+            url: '/api/v1/admin/api-key/validate',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Admin Settings
+     * @returns AdminSettingsPublic Successful Response
+     * @throws ApiError
+     */
+    public static readAdminSettings(): CancelablePromise<AdminReadAdminSettingsResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/settings'
+        });
+    }
+    
+    /**
+     * Update Settings
+     * @param data The data for the request.
+     * @param data.requestBody
+     * @returns AdminSettingsPublic Successful Response
+     * @throws ApiError
+     */
+    public static updateSettings(data: AdminUpdateSettingsData): CancelablePromise<AdminUpdateSettingsResponse> {
+        return __request(OpenAPI, {
+            method: 'PUT',
+            url: '/api/v1/admin/settings',
+            body: data.requestBody,
+            mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+}
 
 export class DriveService {
     /**

@@ -21,6 +21,8 @@ import { Route as LayoutRenameHistoryRouteImport } from './routes/_layout/rename
 import { Route as LayoutPresetsRouteImport } from './routes/_layout/presets'
 import { Route as LayoutDriveRouteImport } from './routes/_layout/drive'
 import { Route as LayoutAdminRouteImport } from './routes/_layout/admin'
+import { Route as LayoutActivityRouteImport } from './routes/_layout/activity'
+import { Route as LayoutUsageUserIdRouteImport } from './routes/_layout/usage.$userId'
 import { Route as LayoutDriveFolderFolderIdRouteImport } from './routes/_layout/drive-folder.$folderId'
 
 const ResetPasswordRoute = ResetPasswordRouteImport.update({
@@ -82,6 +84,16 @@ const LayoutAdminRoute = LayoutAdminRouteImport.update({
   path: '/admin',
   getParentRoute: () => LayoutRoute,
 } as any)
+const LayoutActivityRoute = LayoutActivityRouteImport.update({
+  id: '/activity',
+  path: '/activity',
+  getParentRoute: () => LayoutRoute,
+} as any)
+const LayoutUsageUserIdRoute = LayoutUsageUserIdRouteImport.update({
+  id: '/$userId',
+  path: '/$userId',
+  getParentRoute: () => LayoutUsageRoute,
+} as any)
 const LayoutDriveFolderFolderIdRoute =
   LayoutDriveFolderFolderIdRouteImport.update({
     id: '/drive-folder/$folderId',
@@ -94,28 +106,32 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/activity': typeof LayoutActivityRoute
   '/admin': typeof LayoutAdminRoute
   '/drive': typeof LayoutDriveRoute
   '/presets': typeof LayoutPresetsRoute
   '/rename-history': typeof LayoutRenameHistoryRoute
   '/service-accounts': typeof LayoutServiceAccountsRoute
   '/settings': typeof LayoutSettingsRoute
-  '/usage': typeof LayoutUsageRoute
+  '/usage': typeof LayoutUsageRouteWithChildren
   '/drive-folder/$folderId': typeof LayoutDriveFolderFolderIdRoute
+  '/usage/$userId': typeof LayoutUsageUserIdRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/activity': typeof LayoutActivityRoute
   '/admin': typeof LayoutAdminRoute
   '/drive': typeof LayoutDriveRoute
   '/presets': typeof LayoutPresetsRoute
   '/rename-history': typeof LayoutRenameHistoryRoute
   '/service-accounts': typeof LayoutServiceAccountsRoute
   '/settings': typeof LayoutSettingsRoute
-  '/usage': typeof LayoutUsageRoute
+  '/usage': typeof LayoutUsageRouteWithChildren
   '/': typeof LayoutIndexRoute
   '/drive-folder/$folderId': typeof LayoutDriveFolderFolderIdRoute
+  '/usage/$userId': typeof LayoutUsageUserIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -123,15 +139,17 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/recover-password': typeof RecoverPasswordRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_layout/activity': typeof LayoutActivityRoute
   '/_layout/admin': typeof LayoutAdminRoute
   '/_layout/drive': typeof LayoutDriveRoute
   '/_layout/presets': typeof LayoutPresetsRoute
   '/_layout/rename-history': typeof LayoutRenameHistoryRoute
   '/_layout/service-accounts': typeof LayoutServiceAccountsRoute
   '/_layout/settings': typeof LayoutSettingsRoute
-  '/_layout/usage': typeof LayoutUsageRoute
+  '/_layout/usage': typeof LayoutUsageRouteWithChildren
   '/_layout/': typeof LayoutIndexRoute
   '/_layout/drive-folder/$folderId': typeof LayoutDriveFolderFolderIdRoute
+  '/_layout/usage/$userId': typeof LayoutUsageUserIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -140,6 +158,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/recover-password'
     | '/reset-password'
+    | '/activity'
     | '/admin'
     | '/drive'
     | '/presets'
@@ -148,11 +167,13 @@ export interface FileRouteTypes {
     | '/settings'
     | '/usage'
     | '/drive-folder/$folderId'
+    | '/usage/$userId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/recover-password'
     | '/reset-password'
+    | '/activity'
     | '/admin'
     | '/drive'
     | '/presets'
@@ -162,12 +183,14 @@ export interface FileRouteTypes {
     | '/usage'
     | '/'
     | '/drive-folder/$folderId'
+    | '/usage/$userId'
   id:
     | '__root__'
     | '/_layout'
     | '/login'
     | '/recover-password'
     | '/reset-password'
+    | '/_layout/activity'
     | '/_layout/admin'
     | '/_layout/drive'
     | '/_layout/presets'
@@ -177,6 +200,7 @@ export interface FileRouteTypes {
     | '/_layout/usage'
     | '/_layout/'
     | '/_layout/drive-folder/$folderId'
+    | '/_layout/usage/$userId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -272,6 +296,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LayoutAdminRouteImport
       parentRoute: typeof LayoutRoute
     }
+    '/_layout/activity': {
+      id: '/_layout/activity'
+      path: '/activity'
+      fullPath: '/activity'
+      preLoaderRoute: typeof LayoutActivityRouteImport
+      parentRoute: typeof LayoutRoute
+    }
+    '/_layout/usage/$userId': {
+      id: '/_layout/usage/$userId'
+      path: '/$userId'
+      fullPath: '/usage/$userId'
+      preLoaderRoute: typeof LayoutUsageUserIdRouteImport
+      parentRoute: typeof LayoutUsageRoute
+    }
     '/_layout/drive-folder/$folderId': {
       id: '/_layout/drive-folder/$folderId'
       path: '/drive-folder/$folderId'
@@ -282,26 +320,40 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface LayoutUsageRouteChildren {
+  LayoutUsageUserIdRoute: typeof LayoutUsageUserIdRoute
+}
+
+const LayoutUsageRouteChildren: LayoutUsageRouteChildren = {
+  LayoutUsageUserIdRoute: LayoutUsageUserIdRoute,
+}
+
+const LayoutUsageRouteWithChildren = LayoutUsageRoute._addFileChildren(
+  LayoutUsageRouteChildren,
+)
+
 interface LayoutRouteChildren {
+  LayoutActivityRoute: typeof LayoutActivityRoute
   LayoutAdminRoute: typeof LayoutAdminRoute
   LayoutDriveRoute: typeof LayoutDriveRoute
   LayoutPresetsRoute: typeof LayoutPresetsRoute
   LayoutRenameHistoryRoute: typeof LayoutRenameHistoryRoute
   LayoutServiceAccountsRoute: typeof LayoutServiceAccountsRoute
   LayoutSettingsRoute: typeof LayoutSettingsRoute
-  LayoutUsageRoute: typeof LayoutUsageRoute
+  LayoutUsageRoute: typeof LayoutUsageRouteWithChildren
   LayoutIndexRoute: typeof LayoutIndexRoute
   LayoutDriveFolderFolderIdRoute: typeof LayoutDriveFolderFolderIdRoute
 }
 
 const LayoutRouteChildren: LayoutRouteChildren = {
+  LayoutActivityRoute: LayoutActivityRoute,
   LayoutAdminRoute: LayoutAdminRoute,
   LayoutDriveRoute: LayoutDriveRoute,
   LayoutPresetsRoute: LayoutPresetsRoute,
   LayoutRenameHistoryRoute: LayoutRenameHistoryRoute,
   LayoutServiceAccountsRoute: LayoutServiceAccountsRoute,
   LayoutSettingsRoute: LayoutSettingsRoute,
-  LayoutUsageRoute: LayoutUsageRoute,
+  LayoutUsageRoute: LayoutUsageRouteWithChildren,
   LayoutIndexRoute: LayoutIndexRoute,
   LayoutDriveFolderFolderIdRoute: LayoutDriveFolderFolderIdRoute,
 }

@@ -350,3 +350,102 @@ class RenameLogPublic(SQLModel):
 class RenameHistoryResponse(SQLModel):
     data: list[RenameLogPublic]
     count: int
+
+
+# --- Activity log models ---
+
+
+class ActivityAction(str, Enum):  # noqa: SLOT000
+    LOGIN = "login"
+    LOGOUT = "logout"
+    RENAME = "rename"
+    SETTINGS_CHANGE = "settings_change"
+    USER_CREATED = "user_created"
+    USER_DELETED = "user_deleted"
+    LIMIT_CHANGED = "limit_changed"
+    API_KEY_CHANGED = "api_key_changed"
+
+
+class ActivityLog(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, index=True)
+    action: ActivityAction = Field(
+        sa_column=Column(
+            SAEnum(
+                ActivityAction,
+                values_callable=lambda e: [m.value for m in e],
+            ),
+            nullable=False,
+        )
+    )
+    detail: str | None = Field(default=None, max_length=1000)
+    tokens_used: int | None = None
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class ActivityLogPublic(SQLModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    user_email: str | None = None
+    action: ActivityAction
+    detail: str | None = None
+    tokens_used: int | None = None
+    created_at: datetime | None = None
+
+
+class ActivityLogResponse(SQLModel):
+    data: list[ActivityLogPublic]
+    count: int
+
+
+# --- Admin settings models ---
+
+
+class AdminSetting(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    key: str = Field(max_length=100, unique=True, index=True)
+    value: str = Field(max_length=2000)
+    updated_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+
+class AdminSettingsPublic(SQLModel):
+    default_max_requests_per_day: int | None = None
+    default_max_tokens_per_month: int | None = None
+
+
+class AdminSettingsUpdate(SQLModel):
+    default_max_requests_per_day: int | None = Field(default=None, ge=1)
+    default_max_tokens_per_month: int | None = Field(default=None, ge=1)
+
+
+# --- Admin usage response models ---
+
+
+class UsageSummaryAdmin(SQLModel):
+    current_month_tokens: int
+    previous_month_tokens: int
+    all_time_tokens: int
+    current_month_cost: float
+    previous_month_cost: float
+    all_time_cost: float
+
+
+class UsageTimeseriesPoint(SQLModel):
+    date: str
+    input_tokens: int
+    output_tokens: int
+    total_tokens: int
+    cost: float
+    request_count: int
+
+
+class ApiKeyStatus(SQLModel):
+    is_set: bool
+    masked_key: str | None = None
+    source: str = "not_configured"  # "env", "database", "not_configured"

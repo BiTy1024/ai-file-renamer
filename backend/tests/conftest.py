@@ -8,6 +8,8 @@ from app.core.config import settings
 from app.core.db import engine, init_db
 from app.main import app
 from app.models import (
+    ActivityLog,
+    AdminSetting,
     ConventionPreset,
     RefreshToken,
     RenameLog,
@@ -30,6 +32,8 @@ def db() -> Generator[Session, None, None]:
         # are run directly inside the dev container.
         if settings.ENVIRONMENT == "test":
             for model in (
+                ActivityLog,
+                AdminSetting,
                 RefreshToken,
                 RenameLog,
                 UsageRecord,
