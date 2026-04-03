@@ -20,12 +20,30 @@ export type ActivityLogResponse = {
 export type AdminSettingsPublic = {
     default_max_requests_per_day?: (number | null);
     default_max_tokens_per_month?: (number | null);
+    monthly_spend_threshold?: (number | null);
 };
 
 export type AdminSettingsUpdate = {
     default_max_requests_per_day?: (number | null);
     default_max_tokens_per_month?: (number | null);
+    monthly_spend_threshold?: (number | null);
 };
+
+export type AlertHistoryResponse = {
+    data: Array<AlertRecordPublic>;
+    count: number;
+};
+
+export type AlertRecordPublic = {
+    id: string;
+    user_id: string;
+    user_email?: (string | null);
+    alert_type: AlertType;
+    period: string;
+    created_at?: (string | null);
+};
+
+export type AlertType = 'user_80_pct' | 'user_100_pct' | 'global_spend';
 
 export type ApiKeySetRequest = {
     api_key: string;
@@ -385,6 +403,13 @@ export type AdminUpdateSettingsData = {
 };
 
 export type AdminUpdateSettingsResponse = (AdminSettingsPublic);
+
+export type AdminReadAlertHistoryData = {
+    limit?: number;
+    skip?: number;
+};
+
+export type AdminReadAlertHistoryResponse = (AlertHistoryResponse);
 
 export type DriveReadFoldersResponse = (DriveFolderList);
 

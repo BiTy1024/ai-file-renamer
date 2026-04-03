@@ -3,7 +3,7 @@
 import type { CancelablePromise } from './core/CancelablePromise';
 import { OpenAPI } from './core/OpenAPI';
 import { request as __request } from './core/request';
-import type { AdminReadUsageSummaryResponse, AdminReadUsageTimeseriesData, AdminReadUsageTimeseriesResponse, AdminReadUserUsageTimeseriesData, AdminReadUserUsageTimeseriesResponse, AdminReadUserUsageSummaryData, AdminReadUserUsageSummaryResponse, AdminReadUserActivityData, AdminReadUserActivityResponse, AdminReadActivityLogData, AdminReadActivityLogResponse, AdminExportActivityData, AdminExportActivityResponse, AdminReadApiKeyStatusResponse, AdminUpdateApiKeyData, AdminUpdateApiKeyResponse, AdminRemoveApiKeyResponse, AdminValidateApiKeyData, AdminValidateApiKeyResponse, AdminReadAdminSettingsResponse, AdminUpdateSettingsData, AdminUpdateSettingsResponse, DriveReadFoldersResponse, DriveSearchDriveFoldersData, DriveSearchDriveFoldersResponse, DriveReadFolderSubfoldersData, DriveReadFolderSubfoldersResponse, DriveReadFolderFilesData, DriveReadFolderFilesResponse, DriveReadFileMetadataData, DriveReadFileMetadataResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginRefreshAccessTokenResponse, LoginLogoutResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PresetsReadPresetsData, PresetsReadPresetsResponse, PresetsCreatePresetData, PresetsCreatePresetResponse, PresetsUpdatePresetData, PresetsUpdatePresetResponse, PresetsDeletePresetData, PresetsDeletePresetResponse, PrivateCreateUserData, PrivateCreateUserResponse, RenameRenamePreviewData, RenameRenamePreviewResponse, RenameRenameConfirmData, RenameRenameConfirmResponse, RenameReadRenameHistoryData, RenameReadRenameHistoryResponse, ServiceAccountsReadServiceAccountsData, ServiceAccountsReadServiceAccountsResponse, ServiceAccountsCreateServiceAccountData, ServiceAccountsCreateServiceAccountResponse, ServiceAccountsReadOwnServiceAccountResponse, ServiceAccountsReadServiceAccountData, ServiceAccountsReadServiceAccountResponse, ServiceAccountsUpdateServiceAccountData, ServiceAccountsUpdateServiceAccountResponse, ServiceAccountsDeleteServiceAccountData, ServiceAccountsDeleteServiceAccountResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersReadUserMeUsageResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UsersReadUserLimitsData, UsersReadUserLimitsResponse, UsersUpdateUserLimitsData, UsersUpdateUserLimitsResponse, UsersReadUserUsageData, UsersReadUserUsageResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
+import type { AdminReadUsageSummaryResponse, AdminReadUsageTimeseriesData, AdminReadUsageTimeseriesResponse, AdminReadUserUsageTimeseriesData, AdminReadUserUsageTimeseriesResponse, AdminReadUserUsageSummaryData, AdminReadUserUsageSummaryResponse, AdminReadUserActivityData, AdminReadUserActivityResponse, AdminReadActivityLogData, AdminReadActivityLogResponse, AdminExportActivityData, AdminExportActivityResponse, AdminReadApiKeyStatusResponse, AdminUpdateApiKeyData, AdminUpdateApiKeyResponse, AdminRemoveApiKeyResponse, AdminValidateApiKeyData, AdminValidateApiKeyResponse, AdminReadAdminSettingsResponse, AdminUpdateSettingsData, AdminUpdateSettingsResponse, AdminReadAlertHistoryData, AdminReadAlertHistoryResponse, DriveReadFoldersResponse, DriveSearchDriveFoldersData, DriveSearchDriveFoldersResponse, DriveReadFolderSubfoldersData, DriveReadFolderSubfoldersResponse, DriveReadFolderFilesData, DriveReadFolderFilesResponse, DriveReadFileMetadataData, DriveReadFileMetadataResponse, LoginLoginAccessTokenData, LoginLoginAccessTokenResponse, LoginRefreshAccessTokenResponse, LoginLogoutResponse, LoginTestTokenResponse, LoginRecoverPasswordData, LoginRecoverPasswordResponse, LoginResetPasswordData, LoginResetPasswordResponse, LoginRecoverPasswordHtmlContentData, LoginRecoverPasswordHtmlContentResponse, PresetsReadPresetsData, PresetsReadPresetsResponse, PresetsCreatePresetData, PresetsCreatePresetResponse, PresetsUpdatePresetData, PresetsUpdatePresetResponse, PresetsDeletePresetData, PresetsDeletePresetResponse, PrivateCreateUserData, PrivateCreateUserResponse, RenameRenamePreviewData, RenameRenamePreviewResponse, RenameRenameConfirmData, RenameRenameConfirmResponse, RenameReadRenameHistoryData, RenameReadRenameHistoryResponse, ServiceAccountsReadServiceAccountsData, ServiceAccountsReadServiceAccountsResponse, ServiceAccountsCreateServiceAccountData, ServiceAccountsCreateServiceAccountResponse, ServiceAccountsReadOwnServiceAccountResponse, ServiceAccountsReadServiceAccountData, ServiceAccountsReadServiceAccountResponse, ServiceAccountsUpdateServiceAccountData, ServiceAccountsUpdateServiceAccountResponse, ServiceAccountsDeleteServiceAccountData, ServiceAccountsDeleteServiceAccountResponse, UsersReadUsersData, UsersReadUsersResponse, UsersCreateUserData, UsersCreateUserResponse, UsersReadUserMeResponse, UsersDeleteUserMeResponse, UsersUpdateUserMeData, UsersUpdateUserMeResponse, UsersUpdatePasswordMeData, UsersUpdatePasswordMeResponse, UsersReadUserMeUsageResponse, UsersReadUserByIdData, UsersReadUserByIdResponse, UsersUpdateUserData, UsersUpdateUserResponse, UsersDeleteUserData, UsersDeleteUserResponse, UsersReadUserLimitsData, UsersReadUserLimitsResponse, UsersUpdateUserLimitsData, UsersUpdateUserLimitsResponse, UsersReadUserUsageData, UsersReadUserUsageResponse, UtilsTestEmailData, UtilsTestEmailResponse, UtilsHealthCheckResponse } from './types.gen';
 
 export class AdminService {
     /**
@@ -253,6 +253,28 @@ export class AdminService {
             url: '/api/v1/admin/settings',
             body: data.requestBody,
             mediaType: 'application/json',
+            errors: {
+                422: 'Validation Error'
+            }
+        });
+    }
+    
+    /**
+     * Read Alert History
+     * @param data The data for the request.
+     * @param data.skip
+     * @param data.limit
+     * @returns AlertHistoryResponse Successful Response
+     * @throws ApiError
+     */
+    public static readAlertHistory(data: AdminReadAlertHistoryData = {}): CancelablePromise<AdminReadAlertHistoryResponse> {
+        return __request(OpenAPI, {
+            method: 'GET',
+            url: '/api/v1/admin/alerts',
+            query: {
+                skip: data.skip,
+                limit: data.limit
+            },
             errors: {
                 422: 'Validation Error'
             }

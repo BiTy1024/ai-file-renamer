@@ -18,11 +18,13 @@ export function GlobalDefaultLimits() {
 
   const [requestsPerDay, setRequestsPerDay] = useState("")
   const [tokensPerMonth, setTokensPerMonth] = useState("")
+  const [spendThreshold, setSpendThreshold] = useState("")
 
   useEffect(() => {
     if (data) {
       setRequestsPerDay(data.default_max_requests_per_day?.toString() ?? "")
       setTokensPerMonth(data.default_max_tokens_per_month?.toString() ?? "")
+      setSpendThreshold(data.monthly_spend_threshold?.toString() ?? "")
     }
   }, [data])
 
@@ -36,6 +38,9 @@ export function GlobalDefaultLimits() {
           default_max_tokens_per_month: tokensPerMonth
             ? Number.parseInt(tokensPerMonth, 10)
             : null,
+          monthly_spend_threshold: spendThreshold
+            ? Number.parseInt(spendThreshold, 10)
+            : null,
         },
       }),
     onSuccess: () => {
@@ -47,14 +52,13 @@ export function GlobalDefaultLimits() {
     (requestsPerDay || "") !==
       (data?.default_max_requests_per_day?.toString() ?? "") ||
     (tokensPerMonth || "") !==
-      (data?.default_max_tokens_per_month?.toString() ?? "")
+      (data?.default_max_tokens_per_month?.toString() ?? "") ||
+    (spendThreshold || "") !== (data?.monthly_spend_threshold?.toString() ?? "")
 
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-base">
-          Default Limits for New Users
-        </CardTitle>
+        <CardTitle className="text-base">Limits & Alerts</CardTitle>
       </CardHeader>
       <CardContent>
         {isLoading ? (
@@ -64,7 +68,7 @@ export function GlobalDefaultLimits() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="default-requests" className="text-sm">
-                  Max requests / day
+                  Default requests / day
                 </Label>
                 <Input
                   id="default-requests"
@@ -77,7 +81,7 @@ export function GlobalDefaultLimits() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="default-tokens" className="text-sm">
-                  Max tokens / month
+                  Default tokens / month
                 </Label>
                 <Input
                   id="default-tokens"
@@ -89,6 +93,23 @@ export function GlobalDefaultLimits() {
                 />
               </div>
             </div>
+            <div className="space-y-2">
+              <Label htmlFor="spend-threshold" className="text-sm">
+                Monthly spend alert threshold (tokens)
+              </Label>
+              <Input
+                id="spend-threshold"
+                type="number"
+                min="1"
+                placeholder="No alert"
+                value={spendThreshold}
+                onChange={(e) => setSpendThreshold(e.target.value)}
+              />
+              <p className="text-muted-foreground text-xs">
+                Admin gets an email when total monthly token usage exceeds this
+                value. Leave empty to disable.
+              </p>
+            </div>
             <Button
               size="sm"
               onClick={() => mutation.mutate()}
@@ -97,11 +118,11 @@ export function GlobalDefaultLimits() {
               {mutation.isPending && (
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
-              Save Defaults
+              Save
             </Button>
             <p className="text-muted-foreground text-xs">
-              Applied automatically when new users are created. Leave empty for
-              unlimited.
+              Default limits apply to new users. Alerts fire at 80% and 100% of
+              per-user limits.
             </p>
           </div>
         )}

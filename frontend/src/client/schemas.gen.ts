@@ -114,6 +114,17 @@ export const AdminSettingsPublicSchema = {
                 }
             ],
             title: 'Default Max Tokens Per Month'
+        },
+        monthly_spend_threshold: {
+            anyOf: [
+                {
+                    type: 'integer'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Monthly Spend Threshold'
         }
     },
     type: 'object',
@@ -145,10 +156,95 @@ export const AdminSettingsUpdateSchema = {
                 }
             ],
             title: 'Default Max Tokens Per Month'
+        },
+        monthly_spend_threshold: {
+            anyOf: [
+                {
+                    type: 'integer',
+                    minimum: 1
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Monthly Spend Threshold'
         }
     },
     type: 'object',
     title: 'AdminSettingsUpdate'
+} as const;
+
+export const AlertHistoryResponseSchema = {
+    properties: {
+        data: {
+            items: {
+                '$ref': '#/components/schemas/AlertRecordPublic'
+            },
+            type: 'array',
+            title: 'Data'
+        },
+        count: {
+            type: 'integer',
+            title: 'Count'
+        }
+    },
+    type: 'object',
+    required: ['data', 'count'],
+    title: 'AlertHistoryResponse'
+} as const;
+
+export const AlertRecordPublicSchema = {
+    properties: {
+        id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'Id'
+        },
+        user_id: {
+            type: 'string',
+            format: 'uuid',
+            title: 'User Id'
+        },
+        user_email: {
+            anyOf: [
+                {
+                    type: 'string'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'User Email'
+        },
+        alert_type: {
+            '$ref': '#/components/schemas/AlertType'
+        },
+        period: {
+            type: 'string',
+            title: 'Period'
+        },
+        created_at: {
+            anyOf: [
+                {
+                    type: 'string',
+                    format: 'date-time'
+                },
+                {
+                    type: 'null'
+                }
+            ],
+            title: 'Created At'
+        }
+    },
+    type: 'object',
+    required: ['id', 'user_id', 'alert_type', 'period'],
+    title: 'AlertRecordPublic'
+} as const;
+
+export const AlertTypeSchema = {
+    type: 'string',
+    enum: ['user_80_pct', 'user_100_pct', 'global_spend'],
+    title: 'AlertType'
 } as const;
 
 export const ApiKeySetRequestSchema = {

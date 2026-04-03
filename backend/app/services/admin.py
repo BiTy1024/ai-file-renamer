@@ -318,13 +318,18 @@ def delete_api_key(session: Session) -> None:
 # --- Admin settings (global defaults) ---
 
 
+_SETTINGS_KEYS = [
+    "default_max_requests_per_day",
+    "default_max_tokens_per_month",
+    "monthly_spend_threshold",
+]
+
+
 def get_admin_settings(session: Session) -> AdminSettingsPublic:
     settings_map: dict[str, str] = {}
     rows = session.exec(
         select(AdminSetting).where(
-            AdminSetting.key.in_(
-                ["default_max_requests_per_day", "default_max_tokens_per_month"]
-            )  # type: ignore[union-attr]
+            AdminSetting.key.in_(_SETTINGS_KEYS)  # type: ignore[union-attr]
         )
     ).all()
     for row in rows:
@@ -337,6 +342,9 @@ def get_admin_settings(session: Session) -> AdminSettingsPublic:
         default_max_tokens_per_month=int(settings_map["default_max_tokens_per_month"])
         if "default_max_tokens_per_month" in settings_map
         else None,
+        monthly_spend_threshold=int(settings_map["monthly_spend_threshold"])
+        if "monthly_spend_threshold" in settings_map
+        else None,
     )
 
 
@@ -344,11 +352,13 @@ def update_admin_settings(
     session: Session,
     default_max_requests_per_day: int | None = None,
     default_max_tokens_per_month: int | None = None,
+    monthly_spend_threshold: int | None = None,
 ) -> AdminSettingsPublic:
     now = datetime.now(timezone.utc)
     updates = {
         "default_max_requests_per_day": default_max_requests_per_day,
         "default_max_tokens_per_month": default_max_tokens_per_month,
+        "monthly_spend_threshold": monthly_spend_threshold,
     }
     for key, value in updates.items():
         existing = session.exec(

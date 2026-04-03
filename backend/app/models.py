@@ -2,6 +2,7 @@ import uuid
 from datetime import datetime, timezone
 from enum import Enum
 
+import sqlalchemy as sa
 from pydantic import EmailStr
 from sqlalchemy import DateTime
 from sqlalchemy import Enum as SAEnum
@@ -417,11 +418,13 @@ class AdminSetting(SQLModel, table=True):
 class AdminSettingsPublic(SQLModel):
     default_max_requests_per_day: int | None = None
     default_max_tokens_per_month: int | None = None
+    monthly_spend_threshold: int | None = None
 
 
 class AdminSettingsUpdate(SQLModel):
     default_max_requests_per_day: int | None = Field(default=None, ge=1)
     default_max_tokens_per_month: int | None = Field(default=None, ge=1)
+    monthly_spend_threshold: int | None = Field(default=None, ge=1)
 
 
 # --- Admin usage response models ---
@@ -449,3 +452,47 @@ class ApiKeyStatus(SQLModel):
     is_set: bool
     masked_key: str | None = None
     source: str = "not_configured"  # "env", "database", "not_configured"
+
+
+# --- Alert models ---
+
+
+class AlertType(str, Enum):  # noqa: SLOT000
+    USER_80_PCT = "user_80_pct"
+    USER_100_PCT = "user_100_pct"
+    GLOBAL_SPEND = "global_spend"
+
+
+class AlertRecord(SQLModel, table=True):
+    id: uuid.UUID = Field(default_factory=uuid.uuid4, primary_key=True)
+    user_id: uuid.UUID = Field(foreign_key="user.id", nullable=False, index=True)
+    alert_type: AlertType = Field(
+        sa_column=Column(
+            SAEnum(
+                AlertType,
+                values_callable=lambda e: [m.value for m in e],
+            ),
+            nullable=False,
+        )
+    )
+    period: str = Field(max_length=7)  # "YYYY-MM"
+    created_at: datetime | None = Field(
+        default_factory=get_datetime_utc,
+        sa_type=DateTime(timezone=True),  # type: ignore
+    )
+
+    __table_args__ = (sa.UniqueConstraint("user_id", "alert_type", "period"),)
+
+
+class AlertRecordPublic(SQLModel):
+    id: uuid.UUID
+    user_id: uuid.UUID
+    user_email: str | None = None
+    alert_type: AlertType
+    period: str
+    created_at: datetime | None = None
+
+
+class AlertHistoryResponse(SQLModel):
+    data: list[AlertRecordPublic]
+    count: int

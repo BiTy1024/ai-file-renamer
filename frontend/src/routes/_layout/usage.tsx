@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query"
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 
 import { type UserPublic, UsersService } from "@/client"
+import { AlertHistory } from "@/components/Usage/AlertHistory"
 import { ApiKeyManager } from "@/components/Usage/ApiKeyManager"
 import { GlobalDefaultLimits } from "@/components/Usage/GlobalDefaultLimits"
 import { SetLimitsDialog } from "@/components/Usage/SetLimitsDialog"
@@ -112,6 +113,7 @@ function UsagePage() {
         <GlobalDefaultLimits />
       </div>
       <UsageChart />
+      <AlertHistory />
 
       {isLoading && (
         <div className="space-y-2">
