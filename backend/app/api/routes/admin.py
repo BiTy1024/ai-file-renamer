@@ -12,6 +12,7 @@ from app.models import (
     ActivityLogResponse,
     AdminSettingsPublic,
     AdminSettingsUpdate,
+    AlertHistoryResponse,
     ApiKeyStatus,
     RenameHistoryResponse,
     UsageSummary,
@@ -236,6 +237,7 @@ def update_settings(
         session,
         default_max_requests_per_day=body.default_max_requests_per_day,
         default_max_tokens_per_month=body.default_max_tokens_per_month,
+        monthly_spend_threshold=body.monthly_spend_threshold,
     )
     log_activity(
         session,
@@ -244,3 +246,18 @@ def update_settings(
         detail=f"Global defaults updated: {body.model_dump(exclude_none=True)}",
     )
     return result
+
+
+# --- Alert history ---
+
+
+@router.get("/alerts", response_model=AlertHistoryResponse)
+def read_alert_history(
+    session: SessionDep,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(50, ge=1, le=200),
+) -> AlertHistoryResponse:
+    from app.services.alerts import get_alert_history
+
+    entries, count = get_alert_history(session, skip=skip, limit=limit)
+    return AlertHistoryResponse(data=entries, count=count)

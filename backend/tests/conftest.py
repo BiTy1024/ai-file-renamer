@@ -10,6 +10,7 @@ from app.main import app
 from app.models import (
     ActivityLog,
     AdminSetting,
+    AlertRecord,
     ConventionPreset,
     RefreshToken,
     RenameLog,
@@ -32,6 +33,7 @@ def db() -> Generator[Session, None, None]:
         # are run directly inside the dev container.
         if settings.ENVIRONMENT == "test":
             for model in (
+                AlertRecord,
                 ActivityLog,
                 AdminSetting,
                 RefreshToken,

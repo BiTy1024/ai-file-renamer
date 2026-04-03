@@ -117,3 +117,20 @@ test.describe("Admin Dashboard - API Key Management", () => {
     await expect(page.getByPlaceholder("sk-ant-api03-...")).toBeVisible()
   })
 })
+
+test.describe("Admin Dashboard - Alerts & Limits", () => {
+  test("Limits & Alerts card shows spend threshold field", async ({
+    page,
+  }) => {
+    await page.goto("/usage")
+    await expect(page.getByText("Limits & Alerts")).toBeVisible()
+    await expect(
+      page.getByLabel("Monthly spend alert threshold (tokens)"),
+    ).toBeVisible()
+  })
+
+  test("Alert history section is visible", async ({ page }) => {
+    await page.goto("/usage")
+    await expect(page.getByText("Recent Alerts")).toBeVisible()
+  })
+})

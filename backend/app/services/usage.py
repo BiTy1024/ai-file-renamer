@@ -29,6 +29,13 @@ def record_usage(
     session.add(record)
     session.commit()
     session.refresh(record)
+
+    # Check alert thresholds after recording
+    tokens_this_month = get_user_tokens_this_month(session, user_id)
+    from app.services.alerts import check_and_send_alerts
+
+    check_and_send_alerts(session, user_id, tokens_this_month)
+
     return record
 
 
