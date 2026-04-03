@@ -1,9 +1,13 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, redirect } from "@tanstack/react-router"
+import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
 
 import { type UserPublic, UsersService } from "@/client"
+import { ApiKeyManager } from "@/components/Usage/ApiKeyManager"
+import { GlobalDefaultLimits } from "@/components/Usage/GlobalDefaultLimits"
 import { SetLimitsDialog } from "@/components/Usage/SetLimitsDialog"
+import { SummaryCards } from "@/components/Usage/SummaryCards"
 import { UsageBar } from "@/components/Usage/UsageBar"
+import { UsageChart } from "@/components/Usage/UsageChart"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
@@ -29,13 +33,19 @@ export const Route = createFileRoute("/_layout/usage")({
 })
 
 function UserUsageRow({ user }: { user: UserPublic }) {
+  const navigate = useNavigate()
   const { data: usage, isLoading } = useQuery({
     queryKey: ["user-usage", user.id],
     queryFn: () => UsersService.readUserUsage({ userId: user.id }),
   })
 
   return (
-    <TableRow>
+    <TableRow
+      className="cursor-pointer"
+      onClick={() =>
+        navigate({ to: "/usage/$userId", params: { userId: user.id } })
+      }
+    >
       <TableCell>
         <div>
           <span className="font-medium">{user.email}</span>
@@ -69,7 +79,7 @@ function UserUsageRow({ user }: { user: UserPublic }) {
           />
         )}
       </TableCell>
-      <TableCell>
+      <TableCell onClick={(e) => e.stopPropagation()}>
         <SetLimitsDialog
           userId={user.id}
           userEmail={user.email}
@@ -95,6 +105,13 @@ function UsagePage() {
           Monitor API usage and manage rate limits per user
         </p>
       </div>
+
+      <SummaryCards />
+      <div className="grid gap-4 md:grid-cols-2">
+        <ApiKeyManager />
+        <GlobalDefaultLimits />
+      </div>
+      <UsageChart />
 
       {isLoading && (
         <div className="space-y-2">

@@ -1,4 +1,5 @@
 import {
+  Activity,
   BarChart3,
   FolderOpen,
   History,
@@ -41,6 +42,7 @@ export function AppSidebar() {
           },
           { icon: ListChecks, title: "Presets", path: "/presets" },
           { icon: BarChart3, title: "Usage", path: "/usage" },
+          { icon: Activity, title: "Activity", path: "/activity" },
         ]
       : baseItems
 
