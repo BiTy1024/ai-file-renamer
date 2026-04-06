@@ -2,11 +2,16 @@
 #   docker compose -f compose.yml -f compose.prod.yml up -d
 #
 # Replaces Traefik-based routing with direct localhost port bindings.
-# Host Nginx proxies to these ports. Docker ports are bound to 127.0.0.1 only.
+# Host Nginx proxies to these ports. All ports are bound to 127.0.0.1 only.
+#
+# Configure scripts/deploy.conf before running server-setup.sh.
+# DOMAIN must be set in .env — Compose reads it automatically.
 
 services:
   adminer:
-    # Hide adminer behind debug profile in production
+    # Hidden behind debug profile in production.
+    # To access: docker compose ... --profile debug up -d adminer
+    # Then SSH tunnel: ssh -L 8080:127.0.0.1:8080 deploy@<server>
     profiles: ["debug"]
 
   prestart:
@@ -30,9 +35,11 @@ services:
       context: .
       dockerfile: frontend/Dockerfile
       args:
-        - VITE_API_URL=https://ai.bookpass.de
+        # DOMAIN is read from .env automatically by Docker Compose
+        - VITE_API_URL=https://${DOMAIN}
         - NODE_ENV=production
 
 networks:
+  # No external Traefik network needed — host Nginx handles routing
   traefik-public:
     external: false

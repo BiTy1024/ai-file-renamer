@@ -160,7 +160,7 @@ jobs:
           file: frontend/Dockerfile
           push: true
           build-args: |
-            VITE_API_URL=https://ai.bookpass.de
+            VITE_API_URL=https://${{ vars.APP_DOMAIN }}
             NODE_ENV=production
           tags: |
             ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
@@ -174,7 +174,7 @@ jobs:
           key: ${{ secrets.SERVER_SSH_KEY }}
           script: |
             set -e
-            cd /opt/ai-namer
+            cd ${{ vars.APP_DIR || '/opt/ai-namer' }}
 
             # Update image tags in .env
             TAG=${{ github.sha }}
@@ -191,5 +191,5 @@ jobs:
       - name: Health check
         run: |
           sleep 10
-          curl --fail --max-time 10 https://ai.bookpass.de/api/v1/utils/health-check/
+          curl --fail --max-time 10 https://${{ vars.APP_DOMAIN }}/api/v1/utils/health-check/
           echo "Health check passed"
