@@ -48,13 +48,19 @@ echo ">>> [2/7] Installing Docker CE..."
 apt-get install -y ca-certificates curl gnupg
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/debian/gpg \
-  | gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  | gpg --batch --yes --dearmor -o /etc/apt/keyrings/docker.gpg
 chmod a+r /etc/apt/keyrings/docker.gpg
+
+# Docker CE only officially supports up to Debian 12 (bookworm).
+# Map newer codenames (trixie, forky, ...) to bookworm as fallback.
+DOCKER_CODENAME=$(. /etc/os-release && case "$VERSION_CODENAME" in
+  trixie|forky) echo "bookworm" ;;
+  *) echo "$VERSION_CODENAME" ;;
+esac)
 
 echo \
   "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] \
-  https://download.docker.com/linux/debian \
-  $(. /etc/os-release && echo "$VERSION_CODENAME") stable" \
+  https://download.docker.com/linux/debian $DOCKER_CODENAME stable" \
   | tee /etc/apt/sources.list.d/docker.list > /dev/null
 
 apt-get update -y
