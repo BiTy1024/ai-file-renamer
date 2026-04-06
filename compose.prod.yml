@@ -1,0 +1,38 @@
+# Production override — use with:
+#   docker compose -f compose.yml -f compose.prod.yml up -d
+#
+# Replaces Traefik-based routing with direct localhost port bindings.
+# Host Nginx proxies to these ports. Docker ports are bound to 127.0.0.1 only.
+
+services:
+  adminer:
+    # Hide adminer behind debug profile in production
+    profiles: ["debug"]
+
+  prestart:
+    networks:
+      - default
+
+  backend:
+    networks:
+      - default
+    ports:
+      - "127.0.0.1:8000:8000"
+    labels: {}
+
+  frontend:
+    networks:
+      - default
+    ports:
+      - "127.0.0.1:3000:80"
+    labels: {}
+    build:
+      context: .
+      dockerfile: frontend/Dockerfile
+      args:
+        - VITE_API_URL=https://ai.bookpass.de
+        - NODE_ENV=production
+
+networks:
+  traefik-public:
+    external: false
