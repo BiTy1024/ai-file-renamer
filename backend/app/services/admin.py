@@ -56,9 +56,9 @@ def get_usage_summary(session: Session) -> UsageSummaryAdmin:
             func.coalesce(func.sum(UsageRecord.output_tokens), 0),
         )
         if start:
-            stmt = stmt.where(UsageRecord.created_at >= start)  # type: ignore[arg-type]
+            stmt = stmt.where(UsageRecord.created_at >= start)  # type: ignore[arg-type, operator]
         if end:
-            stmt = stmt.where(UsageRecord.created_at < end)  # type: ignore[arg-type]
+            stmt = stmt.where(UsageRecord.created_at < end)  # type: ignore[arg-type, operator]
         row = session.exec(stmt).one()
         inp, out = int(row[0]), int(row[1])  # type: ignore[index]
         return inp + out, _calculate_cost(inp, out)
@@ -100,7 +100,7 @@ def get_usage_timeseries(
             ),
             func.count().label("request_count"),
         )
-        .where(UsageRecord.created_at >= start)  # type: ignore[arg-type]
+        .where(UsageRecord.created_at >= start)  # type: ignore[arg-type, operator]
         .group_by(date_col)
         .order_by(date_col)
     )
@@ -176,11 +176,11 @@ def get_activity_log(
         stmt = stmt.where(ActivityLog.action == action)  # type: ignore[arg-type]
         count_stmt = count_stmt.where(ActivityLog.action == action)  # type: ignore[arg-type]
     if from_date:
-        stmt = stmt.where(ActivityLog.created_at >= from_date)  # type: ignore[arg-type]
-        count_stmt = count_stmt.where(ActivityLog.created_at >= from_date)  # type: ignore[arg-type]
+        stmt = stmt.where(ActivityLog.created_at >= from_date)  # type: ignore[arg-type, operator]
+        count_stmt = count_stmt.where(ActivityLog.created_at >= from_date)  # type: ignore[arg-type, operator]
     if to_date:
-        stmt = stmt.where(ActivityLog.created_at <= to_date)  # type: ignore[arg-type]
-        count_stmt = count_stmt.where(ActivityLog.created_at <= to_date)  # type: ignore[arg-type]
+        stmt = stmt.where(ActivityLog.created_at <= to_date)  # type: ignore[arg-type, operator]
+        count_stmt = count_stmt.where(ActivityLog.created_at <= to_date)  # type: ignore[arg-type, operator]
 
     count = session.exec(count_stmt).one()
     stmt = stmt.order_by(col(ActivityLog.created_at).desc()).offset(skip).limit(limit)
@@ -216,9 +216,9 @@ def export_activity_csv(
     if user_id:
         stmt = stmt.where(ActivityLog.user_id == user_id)
     if from_date:
-        stmt = stmt.where(ActivityLog.created_at >= from_date)  # type: ignore[arg-type]
+        stmt = stmt.where(ActivityLog.created_at >= from_date)  # type: ignore[arg-type, operator]
     if to_date:
-        stmt = stmt.where(ActivityLog.created_at <= to_date)  # type: ignore[arg-type]
+        stmt = stmt.where(ActivityLog.created_at <= to_date)  # type: ignore[arg-type, operator]
 
     stmt = stmt.order_by(col(ActivityLog.created_at).desc()).limit(max_rows)
 
@@ -322,9 +322,9 @@ def get_admin_settings(session: Session) -> AdminSettingsPublic:
     settings_map: dict[str, str] = {}
     rows = session.exec(
         select(AdminSetting).where(
-            AdminSetting.key.in_(
+            AdminSetting.key.in_(  # type: ignore[union-attr, attr-defined]
                 ["default_max_requests_per_day", "default_max_tokens_per_month"]
-            )  # type: ignore[union-attr]
+            )
         )
     ).all()
     for row in rows:

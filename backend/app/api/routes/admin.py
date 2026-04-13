@@ -143,7 +143,7 @@ def export_activity(
     user_id: uuid.UUID | None = None,
     from_date: datetime | None = None,
     to_date: datetime | None = None,
-):
+) -> StreamingResponse:
     return StreamingResponse(
         export_activity_csv(
             session,
@@ -184,7 +184,7 @@ def update_api_key(
 def remove_api_key(
     session: SessionDep,
     current_user: CurrentUser,
-):
+) -> dict[str, str]:
     delete_api_key(session)
     log_activity(
         session,
