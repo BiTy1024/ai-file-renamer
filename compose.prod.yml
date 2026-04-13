@@ -1,10 +1,10 @@
 # Production override — use with:
 #   docker compose -f compose.yml -f compose.prod.yml up -d
 #
-# Replaces Traefik-based routing with direct localhost port bindings.
-# Host Nginx proxies to these ports. All ports are bound to 127.0.0.1 only.
+# Exposes frontend on port 80 and backend on port 8000 directly.
+# No reverse proxy — ports are publicly accessible.
+# UFW must allow 80 and 8000 (server-setup.sh handles this).
 #
-# Configure scripts/deploy.conf before running server-setup.sh.
 # DOMAIN must be set in .env — Compose reads it automatically.
 
 services:
@@ -22,24 +22,24 @@ services:
     networks:
       - default
     ports:
-      - "127.0.0.1:8000:8000"
+      - "8000:8000"
     labels: {}
 
   frontend:
     networks:
       - default
     ports:
-      - "127.0.0.1:3000:80"
+      - "80:80"
     labels: {}
     build:
       context: .
       dockerfile: frontend/Dockerfile
       args:
         # DOMAIN is read from .env automatically by Docker Compose
-        - VITE_API_URL=https://${DOMAIN}
+        - VITE_API_URL=http://${DOMAIN}:8000
         - NODE_ENV=production
 
 networks:
-  # No external Traefik network needed — host Nginx handles routing
+  # No external Traefik network needed
   traefik-public:
     external: false

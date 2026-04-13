@@ -160,7 +160,7 @@ jobs:
           file: frontend/Dockerfile
           push: true
           build-args: |
-            VITE_API_URL=https://${{ vars.APP_DOMAIN }}
+            VITE_API_URL=http://${{ vars.APP_DOMAIN }}:8000
             NODE_ENV=production
           tags: |
             ${{ env.FRONTEND_IMAGE }}:${{ github.sha }}
@@ -191,5 +191,5 @@ jobs:
       - name: Health check
         run: |
           sleep 10
-          curl --fail --max-time 10 https://${{ vars.APP_DOMAIN }}/api/v1/utils/health-check/
+          curl --fail --max-time 10 http://${{ vars.APP_DOMAIN }}:8000/api/v1/utils/health-check/
           echo "Health check passed"

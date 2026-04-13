@@ -1,7 +1,7 @@
 # Server Deployment Guide
 
-Deploys AI-Namer to a single Debian server with Nginx as reverse proxy.  
-Frontend and backend share one domain. Nginx routes `/api/*` to the backend, everything else to the frontend.
+Deploys AI-Namer to a single Debian server.  
+Frontend runs on port 80, backend API on port 8000. No reverse proxy.
 
 **Single file to configure:** `scripts/deploy.conf`
 
@@ -11,11 +11,9 @@ Frontend and backend share one domain. Nginx routes `/api/*` to the backend, eve
 
 ```
 1. Edit scripts/deploy.conf
-2. Run: bash scripts/server-setup.sh
-3. Set DNS A record → server IP
-4. Run: certbot --nginx -d <your-domain>
-5. Clone repo, configure .env, start Docker stack
-6. Set GitHub Actions variables and secrets
+2. SSH into server as root, run: bash scripts/server-setup.sh
+3. Set GitHub Secrets + Variables (output by setup script)
+4. Clone repo, configure .env, start Docker stack
 ```
 
 ---
@@ -25,11 +23,8 @@ Frontend and backend share one domain. Nginx routes `/api/*` to the backend, eve
 Edit `scripts/deploy.conf` before running anything:
 
 ```bash
-APP_DOMAIN=ai.example.com      # Your domain
 DEPLOY_USER=deploy             # Non-root user to create
 APP_DIR=/opt/ai-namer          # Where the app lives on the server
-FRONTEND_PORT=3000             # Must match compose.prod.yml
-BACKEND_PORT=8000              # Must match compose.prod.yml
 GHCR_OWNER=your-github-username
 BACKUP_RETENTION_DAYS=30
 BACKUP_DIR=/opt/backups/db
@@ -37,33 +32,13 @@ BACKUP_DIR=/opt/backups/db
 
 ---
 
-## Step 1: Set DNS (your DNS provider)
+## Step 1: Remove existing software (if any)
 
-Add an A record before running Certbot:
-
-| Hostname | Type | Value |
-|----------|------|-------|
-| `<APP_DOMAIN>` | A | `<server-ip>` |
-
-DNS propagation typically takes a few minutes, up to 24h.
+If your server has other software running on port 80 or 8000, stop it first.
 
 ---
 
-## Step 2: Remove existing software (if any)
-
-If your server has other software running, stop and remove it before proceeding.  
-Example for OpenClaw (Node.js daemon):
-
-```bash
-systemctl stop openclaw && systemctl disable openclaw
-npm uninstall -g openclaw
-apt remove --purge -y nodejs npm
-systemctl daemon-reload
-```
-
----
-
-## Step 3: Run the setup script
+## Step 2: Run the setup script
 
 SSH into the server as root, then:
 
@@ -71,46 +46,55 @@ SSH into the server as root, then:
 bash scripts/server-setup.sh
 ```
 
-This installs Docker CE, Nginx, Certbot, configures UFW (opens 80 + 443), creates the deploy user, and generates the Nginx vhost from the template.
+This installs Docker CE, configures UFW (opens port 80 + 8000), creates the deploy user, and generates a deploy SSH key.
+
+The script prints the private SSH key and server IP at the end — you need both for GitHub Secrets.
 
 ---
 
-## Step 4: SSL Certificate
+## Step 3: Set GitHub Secrets and Variables
 
-Wait for DNS to propagate (`dig <APP_DOMAIN>` should return your server IP), then:
+### Secrets (GitHub → Settings → Secrets → Actions)
 
-```bash
-certbot --nginx -d <APP_DOMAIN>
-certbot renew --dry-run   # Verify auto-renewal works
-```
+| Secret | Value |
+|--------|-------|
+| `SERVER_HOST` | Server IP (printed by setup script) |
+| `SERVER_USER` | `deploy` (or value from deploy.conf) |
+| `SERVER_SSH_KEY` | Private key (printed by setup script) |
 
-Certbot auto-configures HTTPS redirect and HTTP/2.
+### Variables (GitHub → Settings → Variables → Actions)
+
+| Variable | Value |
+|----------|-------|
+| `APP_DOMAIN` | Server IP or domain (e.g. `123.45.67.89` or `ai.example.com`) |
+| `APP_DIR` | App directory on server (e.g. `/opt/ai-namer`) |
 
 ---
 
-## Step 5: First Deploy (Manual)
+## Step 4: First Deploy (Manual)
 
 ### Clone the repository
 
 ```bash
 su - deploy
-git clone https://github.com/<your-org>/ai-file-renamer.git <APP_DIR>
-cd <APP_DIR>
+git clone https://github.com/<your-org>/ai-file-renamer.git /opt/ai-namer
+cd /opt/ai-namer
 ```
 
 ### Configure .env
 
 ```bash
 cp .env.example .env
+nano .env
 ```
 
-Edit `.env` — minimum required values:
+Minimum required values:
 
 ```env
-DOMAIN=<APP_DOMAIN>                  # Must match deploy.conf APP_DOMAIN
-FRONTEND_HOST=https://<APP_DOMAIN>
+DOMAIN=<server-ip-or-domain>
+FRONTEND_HOST=http://<server-ip-or-domain>
 ENVIRONMENT=production
-BACKEND_CORS_ORIGINS=https://<APP_DOMAIN>
+BACKEND_CORS_ORIGINS=http://<server-ip-or-domain>
 
 SECRET_KEY=<generate: python3 -c "import secrets; print(secrets.token_hex(32))">
 FIRST_SUPERUSER=admin@example.com
@@ -136,40 +120,14 @@ docker compose -f compose.yml -f compose.prod.yml up -d
 
 # Verify
 docker compose -f compose.yml -f compose.prod.yml ps
-curl https://<APP_DOMAIN>/api/v1/utils/health-check/
+curl http://<server-ip>:8000/api/v1/utils/health-check/
 ```
+
+The frontend is then accessible at `http://<server-ip>/`.
 
 ---
 
-## Step 6: GitHub Actions CI/CD
-
-### Required Secrets (GitHub → Settings → Secrets → Actions)
-
-| Secret | Value |
-|--------|-------|
-| `SERVER_HOST` | Server IP |
-| `SERVER_USER` | `deploy` (or value from deploy.conf) |
-| `SERVER_SSH_KEY` | Private SSH key of the deploy user |
-
-### Required Variables (GitHub → Settings → Variables → Actions)
-
-| Variable | Value |
-|----------|-------|
-| `APP_DOMAIN` | Your domain (e.g. `ai.example.com`) |
-| `APP_DIR` | App directory on server (e.g. `/opt/ai-namer`) |
-
-### Generate a deploy SSH key
-
-```bash
-# On the server, as deploy user
-ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N ""
-cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
-
-# Copy the private key into GitHub Secret SERVER_SSH_KEY
-cat ~/.ssh/id_ed25519
-```
-
-### How CI/CD works
+## Step 5: GitHub Actions CI/CD
 
 On every push to `main` (after lint + tests pass):
 
@@ -177,17 +135,17 @@ On every push to `main` (after lint + tests pass):
 2. Pushes to GHCR tagged with git SHA + `latest`
 3. SSHs into server, pulls new images, restarts stack
 4. Migrations run automatically via the `prestart` container
-5. Health checks `https://<APP_DOMAIN>/api/v1/utils/health-check/`
+5. Health checks `http://<APP_DOMAIN>:8000/api/v1/utils/health-check/`
 
 ---
 
-## Step 7: Automated Backups
+## Step 6: Automated Backups
 
 ```bash
-chmod +x <APP_DIR>/scripts/backup-db.sh
+chmod +x /opt/ai-namer/scripts/backup-db.sh
 
 # Install cron job (as deploy user)
-(crontab -l 2>/dev/null; echo "0 2 * * * <APP_DIR>/scripts/backup-db.sh >> <BACKUP_DIR>/backup.log 2>&1") | crontab -
+(crontab -l 2>/dev/null; echo "0 2 * * * /opt/ai-namer/scripts/backup-db.sh >> /opt/backups/db/backup.log 2>&1") | crontab -
 ```
 
 Backups are stored in `BACKUP_DIR` (from deploy.conf) and kept for `BACKUP_RETENTION_DAYS` days.
@@ -195,33 +153,9 @@ Backups are stored in `BACKUP_DIR` (from deploy.conf) and kept for `BACKUP_RETEN
 ### Restore from backup
 
 ```bash
-gunzip -c <BACKUP_DIR>/ai-namer-<TIMESTAMP>.sql.gz | \
+gunzip -c /opt/backups/db/ai-namer-<TIMESTAMP>.sql.gz | \
   docker compose -f compose.yml -f compose.prod.yml exec -T db \
   psql -U $POSTGRES_USER $POSTGRES_DB
-```
-
----
-
-## Adding additional sites to Nginx
-
-To host other domains on the same server (e.g. a static site):
-
-```bash
-# Create the vhost manually
-cat > /etc/nginx/sites-available/example.com << 'EOF'
-server {
-    listen 80;
-    server_name example.com www.example.com;
-    root /var/www/example.com;
-    index index.html;
-    location / { try_files $uri $uri/ =404; }
-}
-EOF
-
-mkdir -p /var/www/example.com
-ln -s /etc/nginx/sites-available/example.com /etc/nginx/sites-enabled/
-nginx -t && systemctl reload nginx
-certbot --nginx -d example.com -d www.example.com
 ```
 
 ---
@@ -229,7 +163,7 @@ certbot --nginx -d example.com -d www.example.com
 ## Rollback
 
 ```bash
-cd <APP_DIR>
+cd /opt/ai-namer
 PREVIOUS_SHA=<git-sha>
 sed -i "s|^TAG=.*|TAG=$PREVIOUS_SHA|" .env
 docker compose -f compose.yml -f compose.prod.yml pull
@@ -253,9 +187,6 @@ docker compose -f compose.yml -f compose.prod.yml exec backend alembic upgrade h
 # Adminer (DB admin, debug only)
 docker compose -f compose.yml -f compose.prod.yml --profile debug up -d adminer
 # Then: ssh -L 8080:127.0.0.1:8080 deploy@<server>
-
-# SSL cert status
-certbot certificates
 
 # Firewall status
 ufw status

@@ -2,16 +2,15 @@
 # =============================================================================
 # server-setup.sh — Provision a fresh Debian server for AI-Namer
 # =============================================================================
-# Run as root on a clean Debian 12 server.
+# Run as root on a clean Debian server.
 #
 # What this script does:
 #   1. Reads configuration from scripts/deploy.conf
 #   2. Updates system packages
 #   3. Installs Docker CE + Compose plugin
-#   4. Installs Nginx + Certbot
-#   5. Opens UFW ports 80 and 443
-#   6. Creates a non-root deploy user with Docker access
-#   7. Creates required directories
+#   4. Opens UFW ports 80 (frontend) and 8000 (backend API)
+#   5. Creates a non-root deploy user with Docker access
+#   6. Creates required directories
 #
 # Usage:
 #   bash scripts/server-setup.sh
@@ -32,19 +31,18 @@ source "$CONF"
 
 echo "==================================================================="
 echo " AI-Namer Server Setup"
-echo " Domain:      $APP_DOMAIN"
 echo " Deploy user: $DEPLOY_USER"
 echo " App dir:     $APP_DIR"
 echo "==================================================================="
 echo ""
 
 # --- 1. System update --------------------------------------------------------
-echo ">>> [1/7] Updating system packages..."
+echo ">>> [1/6] Updating system packages..."
 apt-get update -y
 apt-get upgrade -y
 
 # --- 2. Docker ---------------------------------------------------------------
-echo ">>> [2/7] Installing Docker CE..."
+echo ">>> [2/6] Installing Docker CE..."
 apt-get install -y ca-certificates curl gnupg
 install -m 0755 -d /etc/apt/keyrings
 curl -fsSL https://download.docker.com/linux/debian/gpg \
@@ -69,24 +67,17 @@ systemctl enable docker
 systemctl start docker
 echo "    Docker $(docker --version) installed."
 
-# --- 3. Nginx + Certbot ------------------------------------------------------
-echo ">>> [3/7] Installing Nginx and Certbot..."
-apt-get install -y nginx certbot python3-certbot-nginx
-systemctl enable nginx
-systemctl start nginx
-echo "    Nginx $(nginx -v 2>&1 | grep -o '[0-9.]*') installed."
-
-# --- 4. UFW ------------------------------------------------------------------
-echo ">>> [4/7] Configuring UFW..."
-# SSH must already be allowed — we only add 80 and 443
-ufw allow 80/tcp
-ufw allow 443/tcp
+# --- 3. UFW ------------------------------------------------------------------
+echo ">>> [3/6] Configuring UFW..."
+# SSH must already be allowed — we only add the app ports
+ufw allow 80/tcp    # frontend
+ufw allow 8000/tcp  # backend API
 ufw --force enable
 echo "    UFW status:"
 ufw status
 
-# --- 5. Deploy user ----------------------------------------------------------
-echo ">>> [5/7] Creating deploy user '$DEPLOY_USER'..."
+# --- 4. Deploy user ----------------------------------------------------------
+echo ">>> [4/6] Creating deploy user '$DEPLOY_USER'..."
 if ! id "$DEPLOY_USER" &>/dev/null; then
   adduser --disabled-password --gecos "" "$DEPLOY_USER"
 fi
@@ -100,24 +91,25 @@ if [[ -f /root/.ssh/authorized_keys ]]; then
   chmod 600 "/home/$DEPLOY_USER/.ssh/authorized_keys"
 fi
 
-# --- 6. Directories ----------------------------------------------------------
-echo ">>> [6/7] Creating directories..."
+# --- 5. Directories ----------------------------------------------------------
+echo ">>> [5/6] Creating directories..."
 mkdir -p "$BACKUP_DIR"
 chown "$DEPLOY_USER:$DEPLOY_USER" "$BACKUP_DIR"
 mkdir -p "$APP_DIR"
 chown "$DEPLOY_USER:$DEPLOY_USER" "$APP_DIR"
 
-# --- 7. Nginx vhost ----------------------------------------------------------
-echo ">>> [7/7] Generating Nginx vhost for $APP_DOMAIN..."
-export APP_DOMAIN FRONTEND_PORT BACKEND_PORT
-envsubst '${APP_DOMAIN} ${FRONTEND_PORT} ${BACKEND_PORT}' \
-  < "$SCRIPT_DIR/nginx/app.conf.template" \
-  > "/etc/nginx/sites-available/$APP_DOMAIN"
-
-rm -f /etc/nginx/sites-enabled/default
-ln -sf "/etc/nginx/sites-available/$APP_DOMAIN" "/etc/nginx/sites-enabled/$APP_DOMAIN"
-nginx -t && systemctl reload nginx
-echo "    Nginx vhost configured for $APP_DOMAIN."
+# --- 6. Deploy SSH key -------------------------------------------------------
+echo ">>> [6/6] Generating deploy SSH key..."
+su - "$DEPLOY_USER" -c "
+  if [[ ! -f ~/.ssh/id_ed25519 ]]; then
+    ssh-keygen -t ed25519 -f ~/.ssh/id_ed25519 -N ''
+    cat ~/.ssh/id_ed25519.pub >> ~/.ssh/authorized_keys
+    chmod 600 ~/.ssh/authorized_keys
+    echo '    SSH key generated.'
+  else
+    echo '    SSH key already exists, skipping.'
+  fi
+"
 
 # --- Done --------------------------------------------------------------------
 echo ""
@@ -125,11 +117,25 @@ echo "==================================================================="
 echo " Setup complete!"
 echo ""
 echo " Next steps:"
-echo "   1. Set DNS A record:  $APP_DOMAIN → $(curl -s ifconfig.me 2>/dev/null || echo '<server-ip>')"
-echo "   2. Once DNS is live:  certbot --nginx -d $APP_DOMAIN"
-echo "   3. Clone repo:        git clone <repo-url> $APP_DIR"
-echo "   4. Configure .env:    cp $APP_DIR/.env.example $APP_DIR/.env && edit it"
-echo "   5. Start app:         docker compose -f compose.yml -f compose.prod.yml up -d"
+echo "   1. Copy the private key below into GitHub Secret SERVER_SSH_KEY"
+echo ""
+cat "/home/$DEPLOY_USER/.ssh/id_ed25519"
+echo ""
+echo "   2. Set GitHub Secrets:"
+echo "      SERVER_HOST = $(curl -s ifconfig.me 2>/dev/null || echo '<server-ip>')"
+echo "      SERVER_USER = $DEPLOY_USER"
+echo "      SERVER_SSH_KEY = <key printed above>"
+echo ""
+echo "   3. Set GitHub Variable:"
+echo "      APP_DOMAIN = <your-domain-or-ip>"
+echo ""
+echo "   4. Clone repo and configure .env on server:"
+echo "      su - $DEPLOY_USER"
+echo "      git clone <repo-url> $APP_DIR"
+echo "      cp $APP_DIR/.env.example $APP_DIR/.env && nano $APP_DIR/.env"
+echo ""
+echo "   5. Start app:"
+echo "      docker compose -f compose.yml -f compose.prod.yml up -d"
 echo ""
 echo " Full guide: docs/deployment-server.md"
 echo "==================================================================="
