@@ -193,6 +193,7 @@ jobs:
 
       - name: Health check
         run: |
-          sleep 10
-          curl --fail --max-time 10 https://${{ vars.APP_DOMAIN }}/api/v1/utils/health-check/
+          sleep 30
+          curl --fail --max-time 10 --retry 5 --retry-delay 10 --retry-connrefused \
+            https://${{ vars.APP_DOMAIN }}/api/v1/utils/health-check/
           echo "Health check passed"
