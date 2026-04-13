@@ -88,8 +88,7 @@ class TokenPayload(SQLModel):
     sub: str | None = None
 
 
-class NewPassword(SQLModel):
-    token: str
+class ResetPassword(SQLModel):
     new_password: str = Field(min_length=8, max_length=128)
 
 
