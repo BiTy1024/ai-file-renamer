@@ -131,8 +131,8 @@ jobs:
       packages: write
     env:
       REGISTRY: ghcr.io
-      BACKEND_IMAGE: ghcr.io/${{ github.repository_owner }}/ai-namer-backend
-      FRONTEND_IMAGE: ghcr.io/${{ github.repository_owner }}/ai-namer-frontend
+      BACKEND_IMAGE: ghcr.io/bity1024/ai-namer-backend
+      FRONTEND_IMAGE: ghcr.io/bity1024/ai-namer-frontend
     steps:
       - uses: actions/checkout@v4
 
