@@ -110,7 +110,7 @@ def test_analyze_missing_api_key(_mock_get_key: MagicMock, db: Session) -> None:
         raise AssertionError("Should have raised")
     except ClaudeError as e:
         assert e.status_code == 503
-        assert "not configured" in e.message
+        assert "No Claude API key configured" in e.message
 
 
 @patch("app.services.admin.get_active_api_key", return_value="sk-from-db")
