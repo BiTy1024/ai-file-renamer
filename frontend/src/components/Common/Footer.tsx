@@ -8,7 +8,6 @@ export function Footer() {
           AI-Namer - {currentYear}
         </p>
         <p className="text-muted-foreground text-xs">
-          Thanks to Sebastian Ramirez for full-stack-fastapi-template
         </p>
       </div>
     </footer>
