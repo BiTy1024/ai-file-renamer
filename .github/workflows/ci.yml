@@ -176,6 +176,9 @@ jobs:
             set -e
             cd ${{ vars.APP_DIR || '/opt/ai-namer' }}
 
+            # Fetch latest compose files and scripts from main
+            git pull origin main
+
             # Update image tags in .env
             TAG=${{ github.sha }}
             sed -i "s|^DOCKER_IMAGE_BACKEND=.*|DOCKER_IMAGE_BACKEND=${{ env.BACKEND_IMAGE }}|" .env
