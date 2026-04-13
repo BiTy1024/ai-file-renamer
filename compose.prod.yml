@@ -1,17 +1,32 @@
 # Production override — use with:
 #   docker compose -f compose.yml -f compose.prod.yml up -d
 #
-# Exposes frontend on port 80 and backend on port 8000 directly.
-# No reverse proxy — ports are publicly accessible.
-# UFW must allow 80 and 8000 (server-setup.sh handles this).
+# Caddy handles HTTPS and routes traffic to frontend/backend internally.
+# Frontend and backend are NOT exposed publicly — only Caddy is.
+# Caddy fetches a Let's Encrypt certificate automatically.
 #
-# DOMAIN must be set in .env — Compose reads it automatically.
+# APP_DOMAIN must be set in .env
 
 services:
+  caddy:
+    image: caddy:2-alpine
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    environment:
+      - APP_DOMAIN=${DOMAIN}
+    networks:
+      - default
+    depends_on:
+      - frontend
+      - backend
+
   adminer:
-    # Hidden behind debug profile in production.
-    # To access: docker compose ... --profile debug up -d adminer
-    # Then SSH tunnel: ssh -L 8080:127.0.0.1:8080 deploy@<server>
     profiles: ["debug"]
 
   prestart:
@@ -21,25 +36,23 @@ services:
   backend:
     networks:
       - default
-    ports:
-      - "8000:8000"
     labels: {}
 
   frontend:
     networks:
       - default
-    ports:
-      - "80:80"
     labels: {}
     build:
       context: .
       dockerfile: frontend/Dockerfile
       args:
-        # DOMAIN is read from .env automatically by Docker Compose
-        - VITE_API_URL=http://${DOMAIN}:8000
+        - VITE_API_URL=https://${DOMAIN}
         - NODE_ENV=production
 
+volumes:
+  caddy_data:
+  caddy_config:
+
 networks:
-  # No external Traefik network needed
   traefik-public:
     external: false
