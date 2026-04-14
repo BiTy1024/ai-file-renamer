@@ -26,7 +26,10 @@ test.describe("Preset management", () => {
 
     await expect(page.getByText("Preset created successfully")).toBeVisible()
 
-    const row = page.getByRole("row").filter({ hasText: "Test Invoice Preset" })
+    const row = page
+      .getByRole("row")
+      .filter({ hasText: "Test Invoice Preset" })
+      .first()
     await expect(row).toBeVisible()
   })
 
@@ -42,7 +45,14 @@ test.describe("Preset management", () => {
     await expect(page.getByText("Preset created successfully")).toBeVisible()
     await expect(page.getByRole("dialog")).not.toBeVisible()
 
-    const row = page.getByRole("row").filter({ hasText: "To Delete" })
+    // Increase page size to 50 so all rows are visible regardless of accumulated test data
+    const pageSizeSelect = page.getByRole("combobox")
+    if (await pageSizeSelect.isVisible()) {
+      await pageSizeSelect.click()
+      await page.getByRole("option", { name: "50" }).click()
+    }
+
+    const row = page.getByRole("row").filter({ hasText: "To Delete" }).first()
     await row.getByRole("button").click()
     await page.getByRole("menuitem", { name: "Delete" }).click()
     await page.getByRole("button", { name: "Delete" }).click()

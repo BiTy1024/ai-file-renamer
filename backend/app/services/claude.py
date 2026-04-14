@@ -4,6 +4,7 @@ from dataclasses import dataclass
 from typing import Any
 
 from anthropic import Anthropic, APIError
+from sqlmodel import Session
 
 from app.core.config import settings
 
@@ -25,17 +26,9 @@ class ClaudeResponse:
     model: str
 
 
-def _get_client() -> Anthropic:
-    if not settings.CLAUDE_API_KEY:
-        raise ClaudeError(
-            "Claude API key not configured. Set CLAUDE_API_KEY in environment.",
-            status_code=503,
-        )
-    return Anthropic(api_key=settings.CLAUDE_API_KEY)
-
-
 def analyze_file_content(
     *,
+    session: Session,
     text: str | None = None,
     image_base64: str | None = None,
     mime_type: str | None = None,
@@ -43,10 +36,20 @@ def analyze_file_content(
 ) -> ClaudeResponse:
     """Send file content to Claude for analysis.
 
+    Reads the active API key from DB (admin-configured) with fallback to env var.
     Supports text content, image content (Vision), or both.
     Returns extracted fields as a dict plus token usage.
     """
-    client = _get_client()
+    # Local import avoids circular dependency (admin imports models, not claude)
+    from app.services.admin import get_active_api_key
+
+    api_key = get_active_api_key(session)
+    if not api_key:
+        raise ClaudeError(
+            "No Claude API key configured. Set CLAUDE_API_KEY or configure via admin UI.",
+            status_code=503,
+        )
+    client = Anthropic(api_key=api_key)
 
     content_blocks: list[dict[str, Any]] = []
 

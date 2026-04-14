@@ -120,11 +120,6 @@ export type Message = {
     message: string;
 };
 
-export type NewPassword = {
-    token: string;
-    new_password: string;
-};
-
 export type PrivateUserCreate = {
     email: string;
     password: string;
@@ -183,6 +178,10 @@ export type RenameResult = {
     file_id: string;
     success: boolean;
     error?: (string | null);
+};
+
+export type ResetPassword = {
+    new_password: string;
 };
 
 export type ServiceAccountCreate = {
@@ -370,7 +369,9 @@ export type AdminUpdateApiKeyData = {
 
 export type AdminUpdateApiKeyResponse = (ApiKeyStatus);
 
-export type AdminRemoveApiKeyResponse = (unknown);
+export type AdminRemoveApiKeyResponse = ({
+    [key: string]: (string);
+});
 
 export type AdminValidateApiKeyData = {
     requestBody: ApiKeySetRequest;
@@ -423,24 +424,6 @@ export type LoginRefreshAccessTokenResponse = (Token);
 export type LoginLogoutResponse = (Message);
 
 export type LoginTestTokenResponse = (UserPublic);
-
-export type LoginRecoverPasswordData = {
-    email: string;
-};
-
-export type LoginRecoverPasswordResponse = (Message);
-
-export type LoginResetPasswordData = {
-    requestBody: NewPassword;
-};
-
-export type LoginResetPasswordResponse = (Message);
-
-export type LoginRecoverPasswordHtmlContentData = {
-    email: string;
-};
-
-export type LoginRecoverPasswordHtmlContentResponse = (string);
 
 export type PresetsReadPresetsData = {
     limit?: number;
@@ -577,6 +560,13 @@ export type UsersDeleteUserData = {
 
 export type UsersDeleteUserResponse = (Message);
 
+export type UsersResetUserPasswordData = {
+    requestBody: ResetPassword;
+    userId: string;
+};
+
+export type UsersResetUserPasswordResponse = (Message);
+
 export type UsersReadUserLimitsData = {
     userId: string;
 };
@@ -595,11 +585,5 @@ export type UsersReadUserUsageData = {
 };
 
 export type UsersReadUserUsageResponse = (UsageSummary);
-
-export type UtilsTestEmailData = {
-    emailTo: string;
-};
-
-export type UtilsTestEmailResponse = (Message);
 
 export type UtilsHealthCheckResponse = (boolean);

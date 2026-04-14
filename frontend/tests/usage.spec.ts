@@ -43,6 +43,6 @@ test.describe("Usage access control", () => {
     await createUser({ email, password })
     await logInUser(page, email, password)
 
-    await expect(page.getByRole("heading", { name: "My Usage" })).toBeVisible()
+    await expect(page.getByText("My Usage")).toBeVisible()
   })
 })

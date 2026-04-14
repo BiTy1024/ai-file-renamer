@@ -626,24 +626,6 @@ export const MessageSchema = {
     title: 'Message'
 } as const;
 
-export const NewPasswordSchema = {
-    properties: {
-        token: {
-            type: 'string',
-            title: 'Token'
-        },
-        new_password: {
-            type: 'string',
-            maxLength: 128,
-            minLength: 8,
-            title: 'New Password'
-        }
-    },
-    type: 'object',
-    required: ['token', 'new_password'],
-    title: 'NewPassword'
-} as const;
-
 export const PrivateUserCreateSchema = {
     properties: {
         email: {
@@ -894,6 +876,20 @@ export const RenameResultSchema = {
     type: 'object',
     required: ['file_id', 'success'],
     title: 'RenameResult'
+} as const;
+
+export const ResetPasswordSchema = {
+    properties: {
+        new_password: {
+            type: 'string',
+            maxLength: 128,
+            minLength: 8,
+            title: 'New Password'
+        }
+    },
+    type: 'object',
+    required: ['new_password'],
+    title: 'ResetPassword'
 } as const;
 
 export const ServiceAccountCreateSchema = {

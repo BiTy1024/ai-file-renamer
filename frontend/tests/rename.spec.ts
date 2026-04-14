@@ -13,7 +13,7 @@ test("Rename form is visible on folder page with files", async ({ page }) => {
     .first()
 
   // Check if any folder links exist
-  const driveContent = page.locator("main")
+  const driveContent = page.locator("main").last()
   await expect(driveContent).toBeVisible()
 })
 

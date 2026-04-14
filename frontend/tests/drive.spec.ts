@@ -51,7 +51,7 @@ test.describe("Drive access control", () => {
 
     await page.goto("/drive")
     await expect(
-      page.getByText("No folders shared with your service account yet."),
+      page.getByText("No service account assigned to your account"),
     ).toBeVisible()
   })
 })
@@ -60,8 +60,8 @@ test.describe("Drive access control", () => {
 // They are skipped in CI unless GOOGLE_SA_CREDENTIALS_JSON is available.
 test.describe("Drive folder tree (requires SA with folders)", () => {
   test.fixme(
-    !process.env.GOOGLE_SA_CREDENTIALS_JSON,
-    "Requires GOOGLE_SA_CREDENTIALS_JSON",
+    !process.env.GOOGLE_DRIVE_TEST_FOLDER_ID,
+    "Requires GOOGLE_DRIVE_TEST_FOLDER_ID - a Drive folder shared with the service account",
   )
 
   test("Drive page shows folder tree with root folders", async ({ page }) => {

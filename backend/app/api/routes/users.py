@@ -10,10 +10,10 @@ from app.api.deps import (
     SessionDep,
     require_role,
 )
-from app.core.config import settings
 from app.core.security import get_password_hash, verify_password
 from app.models import (
     Message,
+    ResetPassword,
     UpdatePassword,
     UsageSummary,
     User,
@@ -31,7 +31,6 @@ from app.services.usage import (
     build_usage_summary,
     get_user_limit,
 )
-from app.utils import generate_new_account_email, send_email
 
 router = APIRouter(prefix="/users", tags=["users"])
 
@@ -72,15 +71,6 @@ def create_user(*, session: SessionDep, user_in: UserCreate) -> Any:
         )
 
     user = crud.create_user(session=session, user_create=user_in)
-    if settings.emails_enabled and user_in.email:
-        email_data = generate_new_account_email(
-            email_to=user_in.email, username=user_in.email, password=user_in.password
-        )
-        send_email(
-            email_to=user_in.email,
-            subject=email_data.subject,
-            html_content=email_data.html_content,
-        )
     return user
 
 
@@ -226,6 +216,26 @@ def delete_user(
     session.delete(user)
     session.commit()
     return Message(message="User deleted successfully")
+
+
+@router.post(
+    "/{user_id}/reset-password",
+    dependencies=[Depends(require_role(UserRole.ADMIN))],
+    response_model=Message,
+)
+def reset_user_password(
+    session: SessionDep, user_id: uuid.UUID, body: ResetPassword
+) -> Message:
+    """
+    Reset a user's password (admin only).
+    """
+    user = session.get(User, user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+    user.hashed_password = get_password_hash(body.new_password)
+    session.add(user)
+    session.commit()
+    return Message(message="Password reset successfully")
 
 
 @router.get(

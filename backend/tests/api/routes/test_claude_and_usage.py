@@ -37,20 +37,29 @@ def test_extract_pdf_text_from_bytes() -> None:
 # --- Claude service tests (mocked) ---
 
 
-@patch("app.services.claude._get_client")
-def test_analyze_file_content_text(mock_get_client: MagicMock) -> None:
+def _mock_anthropic_response(
+    text: str, input_tokens: int = 100, output_tokens: int = 50
+) -> MagicMock:
     mock_response = MagicMock()
-    mock_response.content = [
-        MagicMock(text='{"invoice_date": "2026-01-15", "total": "249.00"}')
-    ]
-    mock_response.usage.input_tokens = 100
-    mock_response.usage.output_tokens = 50
+    mock_response.content = [MagicMock(text=text)]
+    mock_response.usage.input_tokens = input_tokens
+    mock_response.usage.output_tokens = output_tokens
+    return mock_response
 
+
+@patch("app.services.admin.get_active_api_key", return_value="sk-test-key")
+@patch("app.services.claude.Anthropic")
+def test_analyze_file_content_text(
+    mock_anthropic_cls: MagicMock, _mock_get_key: MagicMock, db: Session
+) -> None:
     mock_client = MagicMock()
-    mock_client.messages.create.return_value = mock_response
-    mock_get_client.return_value = mock_client
+    mock_client.messages.create.return_value = _mock_anthropic_response(
+        '{"invoice_date": "2026-01-15", "total": "249.00"}'
+    )
+    mock_anthropic_cls.return_value = mock_client
 
     result = analyze_file_content(
+        session=db,
         text="Invoice from Acme Corp, date: 2026-01-15, total: 249.00",
         instruction="Extract invoice_date and total as JSON",
     )
@@ -60,18 +69,19 @@ def test_analyze_file_content_text(mock_get_client: MagicMock) -> None:
     assert result.output_tokens == 50
 
 
-@patch("app.services.claude._get_client")
-def test_analyze_file_content_image(mock_get_client: MagicMock) -> None:
-    mock_response = MagicMock()
-    mock_response.content = [MagicMock(text='{"company": "Acme"}')]
-    mock_response.usage.input_tokens = 200
-    mock_response.usage.output_tokens = 30
-
+@patch("app.services.admin.get_active_api_key", return_value="sk-test-key")
+@patch("app.services.claude.Anthropic")
+def test_analyze_file_content_image(
+    mock_anthropic_cls: MagicMock, _mock_get_key: MagicMock, db: Session
+) -> None:
     mock_client = MagicMock()
-    mock_client.messages.create.return_value = mock_response
-    mock_get_client.return_value = mock_client
+    mock_client.messages.create.return_value = _mock_anthropic_response(
+        '{"company": "Acme"}', input_tokens=200, output_tokens=30
+    )
+    mock_anthropic_cls.return_value = mock_client
 
     result = analyze_file_content(
+        session=db,
         image_base64="iVBORw0KGgo...",
         mime_type="image/png",
         instruction="Extract company name",
@@ -80,25 +90,57 @@ def test_analyze_file_content_image(mock_get_client: MagicMock) -> None:
     assert result.input_tokens == 200
 
 
-@patch("app.services.claude._get_client")
-def test_analyze_no_content_raises(mock_get_client: MagicMock) -> None:
-    mock_get_client.return_value = MagicMock()
+@patch("app.services.admin.get_active_api_key", return_value="sk-test-key")
+@patch("app.services.claude.Anthropic")
+def test_analyze_no_content_raises(
+    mock_anthropic_cls: MagicMock, _mock_get_key: MagicMock, db: Session
+) -> None:
+    mock_anthropic_cls.return_value = MagicMock()
     try:
-        analyze_file_content(instruction="test")
+        analyze_file_content(session=db, instruction="test")
         raise AssertionError("Should have raised")
     except ClaudeError as e:
         assert e.status_code == 400
 
 
-@patch("app.services.claude.settings")
-def test_analyze_missing_api_key(mock_settings: MagicMock) -> None:
-    mock_settings.CLAUDE_API_KEY = None
+@patch("app.services.admin.get_active_api_key", return_value=None)
+def test_analyze_missing_api_key(_mock_get_key: MagicMock, db: Session) -> None:
     try:
-        analyze_file_content(text="test", instruction="test")
+        analyze_file_content(session=db, text="test", instruction="test")
         raise AssertionError("Should have raised")
     except ClaudeError as e:
         assert e.status_code == 503
-        assert "not configured" in e.message
+        assert "No Claude API key configured" in e.message
+
+
+@patch("app.services.admin.get_active_api_key", return_value="sk-from-db")
+@patch("app.services.claude.Anthropic")
+def test_analyze_uses_db_key_when_no_env_var(
+    mock_anthropic_cls: MagicMock, _mock_get_key: MagicMock, db: Session
+) -> None:
+    """DB-stored key is passed to Anthropic client when env var is not set."""
+    mock_client = MagicMock()
+    mock_client.messages.create.return_value = _mock_anthropic_response('{"x": "1"}')
+    mock_anthropic_cls.return_value = mock_client
+
+    analyze_file_content(session=db, text="test", instruction="test")
+
+    mock_anthropic_cls.assert_called_once_with(api_key="sk-from-db")
+
+
+@patch("app.services.admin.get_active_api_key", return_value="sk-env-key")
+@patch("app.services.claude.Anthropic")
+def test_analyze_passes_resolved_key_to_client(
+    mock_anthropic_cls: MagicMock, _mock_get_key: MagicMock, db: Session
+) -> None:
+    """Whatever key get_active_api_key returns is passed to the Anthropic client."""
+    mock_client = MagicMock()
+    mock_client.messages.create.return_value = _mock_anthropic_response('{"x": "1"}')
+    mock_anthropic_cls.return_value = mock_client
+
+    analyze_file_content(session=db, text="test", instruction="test")
+
+    mock_anthropic_cls.assert_called_once_with(api_key="sk-env-key")
 
 
 # --- Usage tracking tests ---

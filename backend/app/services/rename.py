@@ -114,6 +114,7 @@ def preview_rename(
                 full_instruction += f"\n\nFile metadata:\n{metadata_context}"
 
             result = analyze_file_content(
+                session=session,
                 text=content.get("text"),
                 image_base64=content.get("image_base64"),
                 mime_type=content.get("mime_type"),
