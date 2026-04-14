@@ -1,5 +1,11 @@
 import { useQuery } from "@tanstack/react-query"
-import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router"
+import {
+  Outlet,
+  createFileRoute,
+  redirect,
+  useChildMatches,
+  useNavigate,
+} from "@tanstack/react-router"
 
 import { type UserPublic, UsersService } from "@/client"
 import { ApiKeyManager } from "@/components/Usage/ApiKeyManager"
@@ -20,7 +26,7 @@ import {
 } from "@/components/ui/table"
 
 export const Route = createFileRoute("/_layout/usage")({
-  component: UsagePage,
+  component: UsageLayout,
   beforeLoad: async () => {
     const user = await UsersService.readUserMe()
     if (user.role !== "admin") {
@@ -31,6 +37,14 @@ export const Route = createFileRoute("/_layout/usage")({
     meta: [{ title: "Usage - AI-Namer" }],
   }),
 })
+
+function UsageLayout() {
+  const childMatches = useChildMatches()
+  if (childMatches.length > 0) {
+    return <Outlet />
+  }
+  return <UsagePage />
+}
 
 function UserUsageRow({ user }: { user: UserPublic }) {
   const navigate = useNavigate()

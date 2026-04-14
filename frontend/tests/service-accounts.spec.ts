@@ -63,7 +63,7 @@ test.describe("Service account management", () => {
 
     await expect(page.getByRole("dialog")).not.toBeVisible()
 
-    const saRow = page.getByRole("row").filter({ hasText: "Test SA Paste" })
+    const saRow = page.getByRole("row").filter({ hasText: "Test SA Paste" }).first()
     await expect(saRow).toBeVisible()
   })
 
