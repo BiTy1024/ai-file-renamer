@@ -39,7 +39,9 @@ test.describe("Admin Dashboard - Usage Analytics", () => {
     const firstRow = page.getByRole("row").nth(1)
     await firstRow.click()
     await page.waitForURL(/\/usage\//, { timeout: 15000 })
-    await expect(page.getByText("Current Usage")).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText("Current Usage")).toBeVisible({
+      timeout: 15000,
+    })
   })
 
   test("User detail page shows usage chart", async ({ page }) => {
@@ -48,7 +50,9 @@ test.describe("Admin Dashboard - Usage Analytics", () => {
     const firstRow = page.getByRole("row").nth(1)
     await firstRow.click()
     await page.waitForURL(/\/usage\//, { timeout: 15000 })
-    await expect(page.getByText("User Usage Over Time")).toBeVisible({ timeout: 15000 })
+    await expect(page.getByText("User Usage Over Time")).toBeVisible({
+      timeout: 15000,
+    })
     await expect(page.getByText("Recent Rename Operations")).toBeVisible()
   })
 

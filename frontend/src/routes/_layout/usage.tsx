@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query"
 import {
-  Outlet,
   createFileRoute,
+  Outlet,
   redirect,
   useChildMatches,
   useNavigate,

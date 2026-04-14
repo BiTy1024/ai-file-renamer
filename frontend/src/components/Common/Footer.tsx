@@ -7,7 +7,7 @@ export function Footer() {
         <p className="text-muted-foreground text-sm">
           AI-Namer - {currentYear}
         </p>
-        <p className="text-muted-foreground text-xs"></p>
+        <p className="text-muted-foreground text-xs" />
       </div>
     </footer>
   )

@@ -26,7 +26,10 @@ test.describe("Preset management", () => {
 
     await expect(page.getByText("Preset created successfully")).toBeVisible()
 
-    const row = page.getByRole("row").filter({ hasText: "Test Invoice Preset" }).first()
+    const row = page
+      .getByRole("row")
+      .filter({ hasText: "Test Invoice Preset" })
+      .first()
     await expect(row).toBeVisible()
   })
 
