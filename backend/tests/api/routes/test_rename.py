@@ -248,3 +248,81 @@ def test_viewer_cannot_confirm(client: TestClient, db: Session) -> None:
         },
     )
     assert r.status_code == 403
+
+
+# --- Input validation tests ---
+
+
+def test_preview_folder_id_too_long(client: TestClient, db: Session) -> None:
+    headers = _create_user_with_sa(db, client, UserRole.USER)
+    r = client.post(
+        f"{settings.API_V1_STR}/rename/preview",
+        headers=headers,
+        json={"folder_id": "x" * 256, "convention": "[DATE]_[NAME]"},
+    )
+    assert r.status_code == 422
+
+
+def test_preview_convention_too_long(client: TestClient, db: Session) -> None:
+    headers = _create_user_with_sa(db, client, UserRole.USER)
+    r = client.post(
+        f"{settings.API_V1_STR}/rename/preview",
+        headers=headers,
+        json={"folder_id": "folder1", "convention": "[DATE]_" + "x" * 500},
+    )
+    assert r.status_code == 422
+
+
+def test_preview_instruction_too_long(client: TestClient, db: Session) -> None:
+    headers = _create_user_with_sa(db, client, UserRole.USER)
+    r = client.post(
+        f"{settings.API_V1_STR}/rename/preview",
+        headers=headers,
+        json={
+            "folder_id": "folder1",
+            "convention": "[DATE]_[NAME]",
+            "instruction": "x" * 1001,
+        },
+    )
+    assert r.status_code == 422
+
+
+def test_confirm_folder_id_too_long(client: TestClient, db: Session) -> None:
+    headers = _create_user_with_sa(db, client, UserRole.USER)
+    r = client.post(
+        f"{settings.API_V1_STR}/rename/confirm",
+        headers=headers,
+        json={
+            "folder_id": "x" * 256,
+            "renames": [{"file_id": "file1", "new_name": "a.pdf"}],
+        },
+    )
+    assert r.status_code == 422
+
+
+def test_confirm_new_name_too_long(client: TestClient, db: Session) -> None:
+    headers = _create_user_with_sa(db, client, UserRole.USER)
+    r = client.post(
+        f"{settings.API_V1_STR}/rename/confirm",
+        headers=headers,
+        json={
+            "folder_id": "folder1",
+            "renames": [{"file_id": "file1", "new_name": "a" * 256}],
+        },
+    )
+    assert r.status_code == 422
+
+
+def test_confirm_renames_list_too_long(client: TestClient, db: Session) -> None:
+    headers = _create_user_with_sa(db, client, UserRole.USER)
+    r = client.post(
+        f"{settings.API_V1_STR}/rename/confirm",
+        headers=headers,
+        json={
+            "folder_id": "folder1",
+            "renames": [
+                {"file_id": f"file{i}", "new_name": f"name{i}.pdf"} for i in range(501)
+            ],
+        },
+    )
+    assert r.status_code == 422
