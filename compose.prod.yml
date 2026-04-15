@@ -1,31 +1,14 @@
 # Production override — use with:
 #   docker compose -f compose.yml -f compose.prod.yml up -d
 #
-# Caddy handles HTTPS and routes traffic to frontend/backend internally.
-# Frontend and backend are NOT exposed publicly — only Caddy is.
-# Caddy fetches a Let's Encrypt certificate automatically.
+# Host-Caddy handles HTTPS and routes traffic to frontend/backend via localhost ports.
+# Frontend and backend are bound to 127.0.0.1 only — not directly reachable from the internet.
 #
-# APP_DOMAIN must be set in .env
+# Host-Caddy routing:
+#   renamer.durth.dev /api/* → localhost:8001  (FastAPI)
+#   renamer.durth.dev /*     → localhost:8080  (Nginx/Frontend)
 
 services:
-  caddy:
-    image: caddy:2-alpine
-    restart: always
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - caddy_data:/data
-      - caddy_config:/config
-    environment:
-      - APP_DOMAIN=${DOMAIN}
-    networks:
-      - default
-    depends_on:
-      - frontend
-      - backend
-
   adminer:
     profiles: ["debug"]
 
@@ -37,21 +20,21 @@ services:
     networks:
       - default
     labels: {}
+    ports:
+      - "127.0.0.1:8001:8000"
 
   frontend:
     networks:
       - default
     labels: {}
+    ports:
+      - "127.0.0.1:8080:80"
     build:
       context: .
       dockerfile: frontend/Dockerfile
       args:
         - VITE_API_URL=https://${DOMAIN}
         - NODE_ENV=production
-
-volumes:
-  caddy_data:
-  caddy_config:
 
 networks:
   traefik-public:
