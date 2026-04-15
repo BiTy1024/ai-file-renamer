@@ -143,36 +143,6 @@ def test_analyze_passes_resolved_key_to_client(
     mock_anthropic_cls.assert_called_once_with(api_key="sk-env-key")
 
 
-@patch("app.services.admin.get_active_api_key", return_value="sk-from-db")
-@patch("app.services.claude.Anthropic")
-def test_analyze_uses_db_key_when_no_env_var(
-    mock_anthropic_cls: MagicMock, _mock_get_key: MagicMock, db: Session
-) -> None:
-    """DB-stored key is passed to Anthropic client when env var is not set."""
-    mock_client = MagicMock()
-    mock_client.messages.create.return_value = _mock_anthropic_response('{"x": "1"}')
-    mock_anthropic_cls.return_value = mock_client
-
-    analyze_file_content(session=db, text="test", instruction="test")
-
-    mock_anthropic_cls.assert_called_once_with(api_key="sk-from-db")
-
-
-@patch("app.services.admin.get_active_api_key", return_value="sk-env-key")
-@patch("app.services.claude.Anthropic")
-def test_analyze_passes_resolved_key_to_client(
-    mock_anthropic_cls: MagicMock, _mock_get_key: MagicMock, db: Session
-) -> None:
-    """Whatever key get_active_api_key returns is passed to the Anthropic client."""
-    mock_client = MagicMock()
-    mock_client.messages.create.return_value = _mock_anthropic_response('{"x": "1"}')
-    mock_anthropic_cls.return_value = mock_client
-
-    analyze_file_content(session=db, text="test", instruction="test")
-
-    mock_anthropic_cls.assert_called_once_with(api_key="sk-env-key")
-
-
 # --- Usage tracking tests ---
 
 
