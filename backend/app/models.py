@@ -252,10 +252,10 @@ class RenamePreview(SQLModel):
 
 
 class RenamePreviewRequest(SQLModel):
-    folder_id: str
-    convention: str
-    instruction: str | None = None
-    content_type: str | None = None
+    folder_id: str = Field(max_length=255)
+    convention: str = Field(max_length=500)
+    instruction: str | None = Field(default=None, max_length=1000)
+    content_type: str | None = Field(default=None, max_length=1000)
 
 
 class RenamePreviewResponse(SQLModel):
@@ -263,14 +263,14 @@ class RenamePreviewResponse(SQLModel):
 
 
 class RenameConfirmItem(SQLModel):
-    file_id: str
-    new_name: str
-    original_name: str = ""
+    file_id: str = Field(max_length=255)
+    new_name: str = Field(max_length=255)
+    original_name: str = Field(default="", max_length=255)
 
 
 class RenameConfirmRequest(SQLModel):
-    folder_id: str
-    renames: list[RenameConfirmItem]
+    folder_id: str = Field(max_length=255)
+    renames: list[RenameConfirmItem] = Field(max_length=500)
 
 
 class RenameResult(SQLModel):

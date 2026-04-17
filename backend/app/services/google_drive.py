@@ -8,7 +8,15 @@ from googleapiclient.errors import HttpError  # type: ignore[import-untyped]
 from app.core.security import decrypt_text
 from app.models import ServiceAccount
 
-SCOPES = ["https://www.googleapis.com/auth/drive"]
+# drive.file is excluded: it only covers files created or opened by this app,
+# but user-shared folders contain pre-existing files owned by other accounts.
+# drive.readonly covers listing and reading file content for Claude analysis.
+# drive.metadata covers renaming (updating file name metadata) without granting
+# full write access to file content.
+SCOPES = [
+    "https://www.googleapis.com/auth/drive.readonly",
+    "https://www.googleapis.com/auth/drive.metadata",
+]
 
 
 class DriveError(Exception):

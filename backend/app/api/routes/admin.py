@@ -2,11 +2,12 @@ import uuid
 from datetime import datetime
 
 import anthropic
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from app.api.deps import CurrentUser, SessionDep, require_role
+from app.core.limiter import limiter
 from app.models import (
     ActivityAction,
     ActivityLogResponse,
@@ -201,7 +202,9 @@ class ApiKeyValidateResponse(BaseModel):
 
 
 @router.post("/api-key/validate", response_model=ApiKeyValidateResponse)
+@limiter.limit("10/minute")
 def validate_api_key(
+    request: Request,  # noqa: ARG001 — required by slowapi rate limiter
     body: ApiKeySetRequest,
 ) -> ApiKeyValidateResponse:
     try:

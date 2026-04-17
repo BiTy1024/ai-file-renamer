@@ -289,6 +289,42 @@ def test_api_key_validate_invalid(client: TestClient, db: Session) -> None:
     assert data["valid"] is False
 
 
+def test_api_key_validate_requires_admin(client: TestClient, db: Session) -> None:
+    from app import crud
+    from app.models import UserCreate, UserRole
+    from tests.utils.utils import random_email, random_lower_string
+
+    email = random_email()
+    password = random_lower_string()
+    crud.create_user(
+        session=db,
+        user_create=UserCreate(email=email, password=password, role=UserRole.USER),
+    )
+    r = client.post(
+        f"{settings.API_V1_STR}/login/access-token",
+        data={"username": email, "password": password},
+    )
+    token = r.json()["access_token"]
+    headers = {"Authorization": f"Bearer {token}"}
+
+    r = client.post(
+        f"{settings.API_V1_STR}/admin/api-key/validate",
+        headers=headers,
+        json={"api_key": "sk-ant-any-key"},
+    )
+    assert r.status_code == 403
+
+
+def test_api_key_validate_rate_limit_decorator_applied() -> None:
+    from app.api.routes.admin import validate_api_key
+
+    # slowapi wraps the function with functools.wraps, so __wrapped__ points
+    # to the original undecorated function when @limiter.limit is applied.
+    assert hasattr(validate_api_key, "__wrapped__"), (
+        "Rate limit decorator must be applied to validate_api_key"
+    )
+
+
 # --- Admin settings (global defaults) ---
 
 
